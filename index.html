@@ -3,25 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub - Autentikasi Modern</title>
+    <title>Portal Login Mahasiswa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
             font-family: 'Inter', sans-serif;
             color: #f8fafc;
             min-height: 100vh;
+            overflow-x: hidden;
         }
+        
+        .bg-blob {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: rgba(56, 189, 248, 0.15);
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         .input-gradient {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(71, 85, 105, 0.5);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
         .input-gradient:focus {
@@ -30,104 +42,101 @@
             outline: none;
         }
         .btn-glow {
-            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
             transition: all 0.2s ease;
         }
         .btn-glow:hover {
             transform: translateY(-1px);
-            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.4);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
         }
         .modal-overlay {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(6px);
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center p-6">
+<body class="flex flex-col items-center justify-center p-6 relative">
 
-    <!-- Kontainer Utama -->
-    <div class="w-full max-w-md">
-        <!-- Header & Logo -->
+    <div class="bg-blob top-0 -left-20"></div>
+    <div class="bg-blob bottom-0 -right-20" style="background: rgba(99, 102, 241, 0.15);"></div>
+
+    <div class="w-full max-w-md z-10">
         <div class="text-center mb-10">
-            <div class="inline-block p-4 rounded-full bg-white/5 mb-4">
-                <svg height="40" viewBox="0 0 16 16" width="40" fill="currentColor" class="text-white">
-                    <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+            <div class="inline-block p-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 shadow-xl">
+                <!-- Ikon Topi Wisuda/Akademik -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
                 </svg>
             </div>
-            <h1 class="text-3xl font-semibold tracking-tight">Selamat Datang</h1>
-            <p class="text-slate-400 mt-2">Masuk untuk melanjutkan ke dasbor Anda</p>
+            <h1 class="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Login Mahasiswa</h1>
+            <p class="text-slate-400 mt-2">Gunakan NIM dan kata sandi untuk mengakses portal</p>
         </div>
 
-        <!-- Kartu Login -->
-        <div class="glass-card rounded-2xl p-8 mb-6">
+        <div class="glass-card rounded-3xl p-8 mb-6">
             <form id="loginForm" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
-                    <input type="text" id="usernameInput" class="input-gradient w-full px-4 py-3 rounded-xl text-white placeholder-slate-500" placeholder="Masukkan username" required>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">NIM / Nama Pengguna</label>
+                    <input type="text" id="usernameInput" class="input-gradient w-full px-4 py-3 rounded-xl text-white placeholder-slate-500" placeholder="Masukkan NIM Anda" required>
                 </div>
                 
                 <div>
                     <div class="flex justify-between mb-2">
                         <label class="text-sm font-medium text-slate-300">Kata Sandi</label>
-                        <button type="button" onclick="openResetModal()" class="text-xs text-sky-400 hover:text-sky-300">Ganti kata sandi?</button>
+                        <button type="button" onclick="openResetModal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">Ganti kata sandi?</button>
                     </div>
                     <input type="password" id="passwordInput" class="input-gradient w-full px-4 py-3 rounded-xl text-white placeholder-slate-500" placeholder="••••••••" required>
                 </div>
 
-                <button type="submit" class="btn-glow w-full py-3.5 rounded-xl text-white font-semibold shadow-lg">
-                    Masuk Sekarang
+                <button type="submit" class="btn-glow w-full py-4 rounded-xl text-white font-bold shadow-lg tracking-wide uppercase">
+                    Masuk Portal
                 </button>
             </form>
 
             <div id="statusMsg" class="hidden mt-6 p-4 rounded-xl text-sm text-center font-medium border transition-all duration-300"></div>
         </div>
 
-        <!-- Link Tambahan -->
         <div class="mt-8 text-center text-sm text-slate-400">
-            Belum punya akun? <a href="#" class="text-white hover:underline font-medium">Daftar sekarang</a>
+            Mahasiswa baru? <a href="#" class="text-indigo-400 hover:underline font-medium">Panduan Registrasi</a>
         </div>
     </div>
 
-    <!-- Modal Ganti Kata Sandi -->
     <div id="resetModal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center p-6 z-50">
-        <div class="glass-card w-full max-w-sm rounded-2xl p-8 relative">
-            <button onclick="closeResetModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-            <h2 class="text-xl font-semibold mb-2 text-white">Ganti Kata Sandi</h2>
-            <p class="text-sm text-slate-400 mb-6">Silakan tentukan kata sandi baru untuk akun Anda.</p>
+        <div class="glass-card w-full max-w-sm rounded-3xl p-8 relative">
+            <button onclick="closeResetModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-2 text-white">Ganti Kata Sandi</h2>
+            <p class="text-sm text-slate-400 mb-6">Pastikan kata sandi baru Anda aman.</p>
             
             <form id="resetForm" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1 uppercase tracking-wider">Kata Sandi Baru</label>
+                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-widest">Kata Sandi Baru</label>
                     <input type="password" id="newPassword" class="input-gradient w-full px-4 py-3 rounded-xl text-white text-sm" placeholder="Minimal 6 karakter" required>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1 uppercase tracking-wider">Konfirmasi Kata Sandi</label>
+                    <label class="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-widest">Konfirmasi</label>
                     <input type="password" id="confirmPassword" class="input-gradient w-full px-4 py-3 rounded-xl text-white text-sm" placeholder="Ulangi kata sandi" required>
                 </div>
-                <button type="submit" class="btn-glow w-full py-3 rounded-xl text-white font-semibold text-sm mt-2">
-                    Simpan Perubahan
+                <button type="submit" class="btn-glow w-full py-3.5 rounded-xl text-white font-bold text-sm mt-2">
+                    SIMPAN PERUBAHAN
                 </button>
             </form>
         </div>
     </div>
 
     <script>
-        // Data sementara (Simulasi Database)
         let currentCredentials = {
             username: "reyshan22",
-            password: "reyshan333"
+            password: "reyshan123"
         };
-
-        // Inisialisasi input dengan data default
-        document.getElementById('usernameInput').value = currentCredentials.username;
-        document.getElementById('passwordInput').value = currentCredentials.password;
 
         const loginForm = document.getElementById('loginForm');
         const resetForm = document.getElementById('resetForm');
         const statusMsg = document.getElementById('statusMsg');
         const resetModal = document.getElementById('resetModal');
 
-        // Fungsi UI Modal
         function openResetModal() {
             resetModal.classList.remove('hidden');
         }
@@ -137,45 +146,38 @@
             resetForm.reset();
         }
 
-        // Fungsi Tampilkan Pesan
         function showStatus(text, type) {
-            statusMsg.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/50', 'text-red-400', 'bg-emerald-500/10', 'border-emerald-500/50', 'text-emerald-400', 'bg-sky-500/10', 'border-sky-500/50', 'text-sky-400');
+            statusMsg.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/50', 'text-red-400', 'bg-emerald-500/10', 'border-emerald-500/50', 'text-emerald-400', 'bg-indigo-500/10', 'border-indigo-500/50', 'text-indigo-400');
             statusMsg.innerText = text;
             statusMsg.classList.remove('hidden');
             
             if(type === 'error') statusMsg.classList.add('bg-red-500/10', 'border-red-500/50', 'text-red-400');
             else if(type === 'success') statusMsg.classList.add('bg-emerald-500/10', 'border-emerald-500/50', 'text-emerald-400');
-            else statusMsg.classList.add('bg-sky-500/10', 'border-sky-500/50', 'text-sky-400');
+            else statusMsg.classList.add('bg-indigo-500/10', 'border-indigo-500/50', 'text-indigo-400');
 
-            // Sembunyikan otomatis setelah 5 detik
             setTimeout(() => statusMsg.classList.add('hidden'), 5000);
         }
 
-        // Logika Ganti Password
         resetForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const newPass = document.getElementById('newPassword').value;
             const confirmPass = document.getElementById('confirmPassword').value;
 
             if (newPass.length < 6) {
-                alert("Kata sandi terlalu pendek! Gunakan minimal 6 karakter.");
+                alert("Kata sandi minimal 6 karakter.");
                 return;
             }
 
             if (newPass !== confirmPass) {
-                alert("Konfirmasi kata sandi tidak cocok!");
+                alert("Konfirmasi tidak cocok.");
                 return;
             }
 
-            // Update "Database" Lokal
             currentCredentials.password = newPass;
-            document.getElementById('passwordInput').value = newPass; // Update field di form login
-            
             closeResetModal();
-            showStatus("Kata sandi berhasil diperbarui!", "success");
+            showStatus("Kata sandi diperbarui!", "success");
         });
 
-        // Logika Login
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const inputUser = document.getElementById('usernameInput').value;
@@ -184,19 +186,18 @@
             const btn = loginForm.querySelector('button');
             const originalText = btn.innerHTML;
             
-            btn.innerHTML = `<span class="inline-block animate-spin mr-2">◌</span> Memproses...`;
+            btn.innerHTML = `<span class="inline-block animate-spin mr-2">◌</span> AUTENTIKASI...`;
             btn.disabled = true;
 
             setTimeout(() => {
-                // Cek terhadap "Database" Lokal
                 if (inputUser === currentCredentials.username && inputPass === currentCredentials.password) {
-                    showStatus(`Akses Diterima! Selamat datang, ${inputUser}.`, 'success');
+                    showStatus(`Selamat datang kembali, Mahasiswa ${inputUser}!`, 'success');
                 } else {
-                    showStatus("Gagal: Username atau Kata Sandi salah.", "error");
+                    showStatus("Akses ditolak: NIM atau Kata Sandi salah.", "error");
                 }
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }, 1000);
+            }, 1200);
         });
     </script>
 </body>
