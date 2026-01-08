@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Portal - PBO Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #6366f1;
+            --student: #0ea5e9;
+            --lecturer: #8b5cf6;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            overflow-x: hidden;
+        }
+
+        .hidden-section { display: none !important; }
+
+        /* Ultra Modern Background */
+        .auth-bg {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+        }
+
+        .glass-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .role-tab {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .role-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 2px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Float Animation */
+        .float-anim {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body class="text-slate-100">
+
+    <!-- Section: Login Modern -->
+    <section id="login-section" class="min-h-screen flex items-center justify-center auth-bg px-4 relative">
+        <!-- Background Shapes -->
+        <div class="absolute top-20 left-10 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl float-anim"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl float-anim" style="animation-delay: -3s;"></div>
+
+        <div class="max-w-md w-full glass-container p-8 md:p-12 rounded-[2.5rem] relative z-10">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white rounded-3xl shadow-2xl mb-6 transform -rotate-6">
+                    <i class="fas fa-graduation-cap text-4xl"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold tracking-tight text-white mb-2">Portal Akademik</h2>
+                <p class="text-slate-400 text-sm">Selamat datang kembali! Silakan masuk.</p>
+            </div>
+
+            <!-- Role Switcher -->
+            <div class="flex p-1.5 bg-white/5 rounded-2xl mb-8 border border-white/10">
+                <button id="tab-mhs" onclick="setRole('mahasiswa')" class="role-tab flex-1 py-3 rounded-xl text-sm font-bold active">
+                    <i class="fas fa-user-graduate mr-2"></i>Mahasiswa
+                </button>
+                <button id="tab-dsn" onclick="setRole('dosen')" class="role-tab flex-1 py-3 rounded-xl text-sm font-bold">
+                    <i class="fas fa-chalkboard-teacher mr-2"></i>Dosen
+                </button>
+            </div>
+            
+            <div id="message" class="hidden-section mb-6 p-4 rounded-2xl text-xs text-center font-bold"></div>
+
+            <form id="login-form" class="space-y-6">
+                <input type="hidden" id="current-role" value="mahasiswa">
+                <div class="input-group">
+                    <label class="block text-[10px] font-black text-slate-400 mb-2 ml-1 uppercase tracking-[0.2em]">Identitas Pengguna</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
+                            <i class="fas fa-at"></i>
+                        </span>
+                        <input type="text" id="username" required 
+                            class="w-full pl-12 pr-4 py-4 rounded-2xl outline-none placeholder:text-slate-600" 
+                            placeholder="mhs@gmail.com atau dsn@gmail.com">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="block text-[10px] font-black text-slate-400 mb-2 ml-1 uppercase tracking-[0.2em]">Kata Sandi</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
+                            <i class="fas fa-shield-alt"></i>
+                        </span>
+                        <input type="password" id="password" required 
+                            class="w-full pl-12 pr-4 py-4 rounded-2xl outline-none placeholder:text-slate-600" 
+                            placeholder="••••••••">
+                    </div>
+                </div>
+                
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl btn-glow flex items-center justify-center text-lg mt-8">
+                    <span id="btn-text">Autentikasi</span>
+                </button>
+            </form>
+            
+            <div class="mt-8 flex justify-center space-x-4 opacity-30 hover:opacity-100 transition-opacity">
+                 <p class="text-[10px] font-medium text-slate-500">Demo: pass "123"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Dashboard Utama -->
+    <main id="main-content" class="hidden-section min-h-screen bg-slate-950 flex flex-col">
+        <!-- Navbar -->
+        <nav class="fixed w-full z-50 top-0 bg-slate-950/50 backdrop-blur-xl border-b border-white/5">
+            <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div id="nav-icon" class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg bg-indigo-600">
+                        <i class="fas fa-id-badge"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg block leading-none">PBO<span class="text-indigo-500">.ELITE</span></span>
+                        <span id="role-label" class="text-[10px] uppercase font-black text-slate-500 tracking-widest">USER</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    <div class="hidden md:block text-right">
+                        <p id="user-display-name" class="text-sm font-bold text-white leading-none">User Name</p>
+                        <p id="user-display-email" class="text-[10px] text-slate-500">email@univ.ac.id</p>
+                    </div>
+                    <button id="logout-btn" class="w-10 h-10 bg-white/5 hover:bg-rose-500/20 hover:text-rose-500 rounded-xl transition-all flex items-center justify-center border border-white/10 text-slate-400">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Content -->
+        <div class="pt-28 pb-20 flex-grow px-6">
+            <div class="max-w-7xl mx-auto">
+                <!-- Header Card -->
+                <div id="dashboard-header" class="rounded-[2.5rem] p-10 text-white shadow-2xl mb-10 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h1 class="text-3xl md:text-4xl font-extrabold mb-2">Selamat Datang, <span id="welcome-name">User</span>!</h1>
+                        <p class="opacity-70 font-medium max-w-xl">Anda terhubung ke sistem ELITE (Educational Leadership & Integrated Technical Environment).</p>
+                    </div>
+                    <!-- Decorative patterns -->
+                    <div class="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div id="stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"></div>
+
+                <!-- Main Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 bg-white/5 rounded-[2.5rem] p-8 border border-white/5">
+                        <h3 class="text-xl font-bold mb-6 flex items-center text-white">
+                            <i class="fas fa-calendar-alt mr-3 text-indigo-500"></i>
+                            <span id="list-title">Agenda Akademik</span>
+                        </h3>
+                        <div id="schedule-list" class="space-y-4"></div>
+                    </div>
+
+                    <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5">
+                        <h3 class="text-xl font-bold mb-6 text-white">Buletin Kampus</h3>
+                        <div class="space-y-6">
+                            <div class="group cursor-pointer">
+                                <p class="text-xs text-indigo-400 font-bold mb-1">PENGUMUMAN</p>
+                                <p class="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">Pemeliharaan sistem SIAKAD pada hari Minggu.</p>
+                            </div>
+                            <div class="group cursor-pointer">
+                                <p class="text-xs text-emerald-400 font-bold mb-1">EVENT</p>
+                                <p class="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">Workshop Java Modern: Microservices with Spring Boot.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const DB = {
+            mahasiswa: {
+                email: "reyshan22@gmail.com",
+                pass: "123",
+                name: "Reyshan Mahasiswa",
+                stats: [
+                    { label: "IPK Kumulatif", val: "3.85", icon: "fa-chart-line", col: "text-blue-400" },
+                    { label: "SKS Diambil", val: "22", icon: "fa-book", col: "text-indigo-400" },
+                    { label: "Presensi", val: "98%", icon: "fa-user-check", col: "text-emerald-400" },
+                    { label: "Tugas Aktif", val: "2", icon: "fa-clock", col: "text-rose-400" }
+                ],
+                list: ["Pemrograman Berorientasi Objek - R.302", "Struktur Data & Algoritma - R.401", "Analisis Sistem - R.Lab 2"]
+            },
+            dosen: {
+                email: "yanto@gmail.com",
+                pass: "133",
+                name: "Dr. yanto, M.Kom",
+                stats: [
+                    { label: "Bimbingan", val: "14", icon: "fa-users", col: "text-purple-400" },
+                    { label: "Mata Kuliah", val: "4", icon: "fa-chalkboard", col: "text-violet-400" },
+                    { label: "Publikasi", val: "3", icon: "fa-feather", col: "text-indigo-400" },
+                    { label: "Jadwal Hari Ini", val: "2", icon: "fa-calendar-day", col: "text-amber-400" }
+                ],
+                list: ["PBO (Kelas A) - 08:00 WIB", "Kecerdasan Buatan - 10:30 WIB", "Rapat Koordinasi Prodi - 14:00 WIB"]
+            }
+        };
+
+        const ui = {
+            loginForm: document.getElementById('login-form'),
+            loginSection: document.getElementById('login-section'),
+            mainContent: document.getElementById('main-content'),
+            message: document.getElementById('message'),
+            roleInput: document.getElementById('current-role'),
+            loginBtn: document.getElementById('login-btn'),
+            btnText: document.getElementById('btn-text'),
+            welcomeName: document.getElementById('welcome-name'),
+            statsGrid: document.getElementById('stats-grid'),
+            scheduleList: document.getElementById('schedule-list'),
+            userDisplayName: document.getElementById('user-display-name'),
+            userDisplayEmail: document.getElementById('user-display-email'),
+            roleLabel: document.getElementById('role-label'),
+            navIcon: document.getElementById('nav-icon'),
+            headerCard: document.getElementById('dashboard-header')
+        };
+
+        window.setRole = (role) => {
+            ui.roleInput.value = role;
+            document.getElementById('tab-mhs').className = `role-tab flex-1 py-3 rounded-xl text-sm font-bold ${role === 'mahasiswa' ? 'active' : ''}`;
+            document.getElementById('tab-dsn').className = `role-tab flex-1 py-3 rounded-xl text-sm font-bold ${role === 'dosen' ? 'active' : ''}`;
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                renderDashboard();
+                ui.loginSection.classList.add('hidden-section');
+                ui.mainContent.classList.remove('hidden-section');
+            } else {
+                ui.loginSection.classList.remove('hidden-section');
+                ui.mainContent.classList.add('hidden-section');
+            }
+        });
+
+        function renderDashboard() {
+            const role = localStorage.getItem('userRole') || 'mahasiswa';
+            const data = DB[role];
+            const isDosen = role === 'dosen';
+            
+            ui.welcomeName.innerText = data.name;
+            ui.userDisplayName.innerText = data.name;
+            ui.userDisplayEmail.innerText = data.email;
+            ui.roleLabel.innerText = role;
+            
+            ui.navIcon.className = `w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${isDosen ? 'bg-violet-600' : 'bg-indigo-600'}`;
+            ui.headerCard.className = `rounded-[2.5rem] p-10 text-white shadow-2xl mb-10 relative overflow-hidden ${isDosen ? 'bg-gradient-to-br from-violet-600 to-indigo-900' : 'bg-gradient-to-br from-indigo-600 to-slate-900'}`;
+            document.getElementById('list-title').innerText = isDosen ? "Agenda Mengajar" : "Agenda Kuliah";
+
+            ui.statsGrid.innerHTML = data.stats.map(s => `
+                <div class="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:bg-white/10 transition-all group">
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center ${s.col} mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas ${s.icon} text-xl"></i>
+                    </div>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${s.label}</p>
+                    <h4 class="text-2xl font-extrabold mt-1 text-white">${s.val}</h4>
+                </div>
+            `).join('');
+
+            ui.scheduleList.innerHTML = data.list.map(item => `
+                <div class="flex items-center p-5 bg-white/[0.02] rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-all cursor-default">
+                    <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 mr-4">
+                        <i class="fas fa-bookmark text-xs"></i>
+                    </div>
+                    <p class="font-bold text-slate-300">${item}</p>
+                </div>
+            `).join('');
+        }
+
+        ui.loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const role = ui.roleInput.value;
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            ui.btnText.innerHTML = '<span class="spinner"></span> Memverifikasi...';
+            ui.loginBtn.disabled = true;
+
+            const target = DB[role];
+            if (user === target.email && pass === target.pass) {
+                localStorage.setItem('userRole', role);
+                try {
+                    await signInAnonymously(auth);
+                } catch (err) {
+                    showError("Masalah koneksi terdeteksi.");
+                }
+            } else {
+                setTimeout(() => {
+                    showError(`Akses ditolak. Periksa kembali kredensial ${role}.`);
+                    ui.btnText.innerText = 'Autentikasi';
+                    ui.loginBtn.disabled = false;
+                }, 1000);
+            }
+        });
+
+        function showError(msg) {
+            ui.message.innerText = msg;
+            ui.message.className = "mb-6 p-4 rounded-2xl text-xs text-center font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20";
+            ui.message.classList.remove('hidden-section');
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth);
+            localStorage.removeItem('userRole');
+        });
+    </script>
+</body>
+</html>
