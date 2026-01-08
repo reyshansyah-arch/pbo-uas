@@ -3,413 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Portal - PBO Elite</title>
+    <title>GitHub - Autentikasi Modern</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        
-        :root {
-            --primary: #6366f1;
-            --student: #0ea5e9;
-            --lecturer: #8b5cf6;
-        }
-
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0f172a;
-            overflow-x: hidden;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            font-family: 'Inter', sans-serif;
+            color: #f8fafc;
+            min-height: 100vh;
         }
-
-        .hidden-section { display: none !important; }
-
-        /* Ultra Modern Background */
-        .auth-bg {
-            background-color: #0f172a;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-        }
-
-        .glass-container {
-            background: rgba(255, 255, 255, 0.03);
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-
-        .input-group {
-            position: relative;
+        .input-gradient {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(71, 85, 105, 0.5);
             transition: all 0.3s ease;
         }
-
-        .input-group input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.3s ease;
+        .input-gradient:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+            outline: none;
         }
-
-        .input-group input:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
-        }
-
-        .role-tab {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .role-tab.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
-        }
-
         .btn-glow {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            transition: all 0.2s ease;
         }
-
         .btn-glow:hover {
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.4);
         }
-
-        .spinner {
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 2px solid #fff;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Float Animation */
-        .float-anim {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
-<body class="text-slate-100">
+<body class="flex flex-col items-center justify-center p-6">
 
-    <!-- Section: Login Modern -->
-    <section id="login-section" class="min-h-screen flex items-center justify-center auth-bg px-4 relative">
-        <!-- Background Shapes -->
-        <div class="absolute top-20 left-10 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl float-anim"></div>
-        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl float-anim" style="animation-delay: -3s;"></div>
-
-        <div class="max-w-md w-full glass-container p-8 md:p-12 rounded-[2.5rem] relative z-10">
-            <div class="text-center mb-10">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white rounded-3xl shadow-2xl mb-6 transform -rotate-6">
-                    <i class="fas fa-graduation-cap text-4xl"></i>
-                </div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-white mb-2">Portal Akademik</h2>
-                <p class="text-slate-400 text-sm">Selamat datang kembali! Silakan masuk.</p>
+    <!-- Kontainer Utama -->
+    <div class="w-full max-w-md">
+        <!-- Header & Logo -->
+        <div class="text-center mb-10">
+            <div class="inline-block p-4 rounded-full bg-white/5 mb-4">
+                <svg height="40" viewBox="0 0 16 16" width="40" fill="currentColor" class="text-white">
+                    <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                </svg>
             </div>
+            <h1 class="text-3xl font-semibold tracking-tight">Selamat Datang</h1>
+            <p class="text-slate-400 mt-2">Masuk untuk melanjutkan ke dasbor Anda</p>
+        </div>
 
-            <!-- Role Switcher -->
-            <div class="flex p-1.5 bg-white/5 rounded-2xl mb-8 border border-white/10">
-                <button id="tab-mhs" onclick="setRole('mahasiswa')" class="role-tab flex-1 py-3 rounded-xl text-sm font-bold active">
-                    <i class="fas fa-user-graduate mr-2"></i>Mahasiswa
-                </button>
-                <button id="tab-dsn" onclick="setRole('dosen')" class="role-tab flex-1 py-3 rounded-xl text-sm font-bold">
-                    <i class="fas fa-chalkboard-teacher mr-2"></i>Dosen
-                </button>
-            </div>
-            
-            <div id="message" class="hidden-section mb-6 p-4 rounded-2xl text-xs text-center font-bold"></div>
-
-            <form id="login-form" class="space-y-6">
-                <input type="hidden" id="current-role" value="mahasiswa">
-                <div class="input-group">
-                    <label class="block text-[10px] font-black text-slate-400 mb-2 ml-1 uppercase tracking-[0.2em]">Identitas Pengguna</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
-                            <i class="fas fa-at"></i>
-                        </span>
-                        <input type="text" id="username" required 
-                            class="w-full pl-12 pr-4 py-4 rounded-2xl outline-none placeholder:text-slate-600" 
-                            placeholder="Email atau ID Pengguna">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label class="block text-[10px] font-black text-slate-400 mb-2 ml-1 uppercase tracking-[0.2em]">Kata Sandi</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500">
-                            <i class="fas fa-shield-alt"></i>
-                        </span>
-                        <input type="password" id="password" required 
-                            class="w-full pl-12 pr-4 py-4 rounded-2xl outline-none placeholder:text-slate-600" 
-                            placeholder="••••••••">
-                    </div>
+        <!-- Kartu Login -->
+        <div class="glass-card rounded-2xl p-8 mb-6">
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                    <input type="text" id="usernameInput" class="input-gradient w-full px-4 py-3 rounded-xl text-white placeholder-slate-500" placeholder="Masukkan username" required>
                 </div>
                 
-                <button type="submit" id="login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl btn-glow flex items-center justify-center text-lg mt-8">
-                    <span id="btn-text">Autentikasi</span>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm font-medium text-slate-300">Kata Sandi</label>
+                        <button type="button" onclick="openResetModal()" class="text-xs text-sky-400 hover:text-sky-300">Ganti kata sandi?</button>
+                    </div>
+                    <input type="password" id="passwordInput" class="input-gradient w-full px-4 py-3 rounded-xl text-white placeholder-slate-500" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-glow w-full py-3.5 rounded-xl text-white font-semibold shadow-lg">
+                    Masuk Sekarang
                 </button>
             </form>
-            
-            <!-- Hint for testing -->
-            <div class="mt-8 pt-6 border-t border-white/5">
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center mb-3">Akun Demo (Siap Pakai)</p>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
-                        <p class="text-[9px] text-indigo-400 font-bold mb-1">MAHASISWA</p>
-                        <p class="text-[10px] text-slate-300">reyshan22@gmail.com</p>
-                        <p class="text-[10px] text-slate-500">Pass: 123</p>
-                    </div>
-                    <div class="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
-                        <p class="text-[9px] text-violet-400 font-bold mb-1">DOSEN</p>
-                        <p class="text-[10px] text-slate-300">yanto@gmail.com</p>
-                        <p class="text-[10px] text-slate-500">Pass: 133</p>
-                    </div>
-                </div>
-            </div>
+
+            <div id="statusMsg" class="hidden mt-6 p-4 rounded-xl text-sm text-center font-medium border transition-all duration-300"></div>
         </div>
-    </section>
 
-    <!-- Section: Dashboard Utama -->
-    <main id="main-content" class="hidden-section min-h-screen bg-slate-950 flex flex-col">
-        <!-- Navbar -->
-        <nav class="fixed w-full z-50 top-0 bg-slate-950/50 backdrop-blur-xl border-b border-white/5">
-            <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <div id="nav-icon" class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg bg-indigo-600">
-                        <i class="fas fa-id-badge"></i>
-                    </div>
-                    <div>
-                        <span class="font-extrabold text-lg block leading-none">PBO<span class="text-indigo-500">.ELITE</span></span>
-                        <span id="role-label" class="text-[10px] uppercase font-black text-slate-500 tracking-widest">USER</span>
-                    </div>
-                </div>
-
-                <div class="flex items-center space-x-6">
-                    <div class="hidden md:block text-right">
-                        <p id="user-display-name" class="text-sm font-bold text-white leading-none">User Name</p>
-                        <p id="user-display-email" class="text-[10px] text-slate-500">email@univ.ac.id</p>
-                    </div>
-                    <button id="logout-btn" class="w-10 h-10 bg-white/5 hover:bg-rose-500/20 hover:text-rose-500 rounded-xl transition-all flex items-center justify-center border border-white/10 text-slate-400">
-                        <i class="fas fa-power-off"></i>
-                    </button>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Dashboard Content -->
-        <div class="pt-28 pb-20 flex-grow px-6">
-            <div class="max-w-7xl mx-auto">
-                <!-- Header Card -->
-                <div id="dashboard-header" class="rounded-[2.5rem] p-10 text-white shadow-2xl mb-10 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <h1 class="text-3xl md:text-4xl font-extrabold mb-2">Selamat Datang, <span id="welcome-name">User</span>!</h1>
-                        <p class="opacity-70 font-medium max-w-xl text-lg">Anda terhubung ke sistem ELITE (Educational Leadership & Integrated Technical Environment).</p>
-                    </div>
-                    <!-- Decorative patterns -->
-                    <div class="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                </div>
-
-                <!-- Stats Grid -->
-                <div id="stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"></div>
-
-                <!-- Main Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 bg-white/5 rounded-[2.5rem] p-8 border border-white/5">
-                        <h3 class="text-xl font-bold mb-6 flex items-center text-white">
-                            <i class="fas fa-calendar-alt mr-3 text-indigo-500"></i>
-                            <span id="list-title">Agenda Akademik</span>
-                        </h3>
-                        <div id="schedule-list" class="space-y-4"></div>
-                    </div>
-
-                    <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5">
-                        <h3 class="text-xl font-bold mb-6 text-white">Buletin Kampus</h3>
-                        <div class="space-y-6">
-                            <div class="group cursor-pointer p-4 rounded-2xl hover:bg-white/5 transition-all">
-                                <p class="text-xs text-indigo-400 font-bold mb-1">PENGUMUMAN</p>
-                                <p class="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">Pemeliharaan sistem SIAKAD pada hari Minggu pukul 22:00 WIB.</p>
-                            </div>
-                            <div class="group cursor-pointer p-4 rounded-2xl hover:bg-white/5 transition-all">
-                                <p class="text-xs text-emerald-400 font-bold mb-1">EVENT</p>
-                                <p class="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">Workshop Java Modern: Microservices with Spring Boot.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Link Tambahan -->
+        <div class="mt-8 text-center text-sm text-slate-400">
+            Belum punya akun? <a href="#" class="text-white hover:underline font-medium">Daftar sekarang</a>
         </div>
-    </main>
+    </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // Firebase initialization (using environment config)
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // Database Mock (Credentials as requested)
-        const DB = {
-            mahasiswa: {
-                email: "reyshan22@gmail.com",
-                pass: "123",
-                name: "Reyshan Mahasiswa",
-                stats: [
-                    { label: "IPK Kumulatif", val: "3.85", icon: "fa-chart-line", col: "text-blue-400" },
-                    { label: "SKS Diambil", val: "22", icon: "fa-book", col: "text-indigo-400" },
-                    { label: "Presensi", val: "98%", icon: "fa-user-check", col: "text-emerald-400" },
-                    { label: "Tugas Aktif", val: "2", icon: "fa-clock", col: "text-rose-400" }
-                ],
-                list: ["Pemrograman Berorientasi Objek - R.302", "Struktur Data & Algoritma - R.401", "Analisis Sistem - R.Lab 2"]
-            },
-            dosen: {
-                email: "yanto@gmail.com",
-                pass: "133",
-                name: "Dr. Yanto Reyshan, M.Kom",
-                stats: [
-                    { label: "Bimbingan", val: "14", icon: "fa-users", col: "text-purple-400" },
-                    { label: "Mata Kuliah", val: "4", icon: "fa-chalkboard", col: "text-violet-400" },
-                    { label: "Publikasi", val: "3", icon: "fa-feather", col: "text-indigo-400" },
-                    { label: "Jadwal Hari Ini", val: "2", icon: "fa-calendar-day", col: "text-amber-400" }
-                ],
-                list: ["PBO (Kelas A) - 08:00 WIB", "Kecerdasan Buatan - 10:30 WIB", "Rapat Koordinasi Prodi - 14:00 WIB"]
-            }
-        };
-
-        const ui = {
-            loginForm: document.getElementById('login-form'),
-            loginSection: document.getElementById('login-section'),
-            mainContent: document.getElementById('main-content'),
-            message: document.getElementById('message'),
-            roleInput: document.getElementById('current-role'),
-            loginBtn: document.getElementById('login-btn'),
-            btnText: document.getElementById('btn-text'),
-            welcomeName: document.getElementById('welcome-name'),
-            statsGrid: document.getElementById('stats-grid'),
-            scheduleList: document.getElementById('schedule-list'),
-            userDisplayName: document.getElementById('user-display-name'),
-            userDisplayEmail: document.getElementById('user-display-email'),
-            roleLabel: document.getElementById('role-label'),
-            navIcon: document.getElementById('nav-icon'),
-            headerCard: document.getElementById('dashboard-header')
-        };
-
-        // Switch role logic
-        window.setRole = (role) => {
-            ui.roleInput.value = role;
-            document.getElementById('tab-mhs').className = `role-tab flex-1 py-3 rounded-xl text-sm font-bold ${role === 'mahasiswa' ? 'active' : ''}`;
-            document.getElementById('tab-dsn').className = `role-tab flex-1 py-3 rounded-xl text-sm font-bold ${role === 'dosen' ? 'active' : ''}`;
-            ui.message.classList.add('hidden-section');
-        };
-
-        // Auth observer
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                renderDashboard();
-                ui.loginSection.classList.add('hidden-section');
-                ui.mainContent.classList.remove('hidden-section');
-            } else {
-                ui.loginSection.classList.remove('hidden-section');
-                ui.mainContent.classList.add('hidden-section');
-            }
-        });
-
-        // Dashboard renderer
-        function renderDashboard() {
-            const role = localStorage.getItem('userRole') || 'mahasiswa';
-            const data = DB[role];
-            const isDosen = role === 'dosen';
+    <!-- Modal Ganti Kata Sandi -->
+    <div id="resetModal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center p-6 z-50">
+        <div class="glass-card w-full max-w-sm rounded-2xl p-8 relative">
+            <button onclick="closeResetModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+            <h2 class="text-xl font-semibold mb-2 text-white">Ganti Kata Sandi</h2>
+            <p class="text-sm text-slate-400 mb-6">Silakan tentukan kata sandi baru untuk akun Anda.</p>
             
-            ui.welcomeName.innerText = data.name;
-            ui.userDisplayName.innerText = data.name;
-            ui.userDisplayEmail.innerText = data.email;
-            ui.roleLabel.innerText = role;
-            
-            // Apply role-based styling
-            ui.navIcon.className = `w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${isDosen ? 'bg-violet-600' : 'bg-indigo-600'}`;
-            ui.headerCard.className = `rounded-[2.5rem] p-10 text-white shadow-2xl mb-10 relative overflow-hidden ${isDosen ? 'bg-gradient-to-br from-violet-600 to-indigo-900' : 'bg-gradient-to-br from-indigo-600 to-slate-900'}`;
-            document.getElementById('list-title').innerText = isDosen ? "Agenda Mengajar" : "Agenda Kuliah";
-
-            // Render statistics
-            ui.statsGrid.innerHTML = data.stats.map(s => `
-                <div class="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:bg-white/10 transition-all group">
-                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center ${s.col} mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fas ${s.icon} text-xl"></i>
-                    </div>
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${s.label}</p>
-                    <h4 class="text-2xl font-extrabold mt-1 text-white">${s.val}</h4>
+            <form id="resetForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1 uppercase tracking-wider">Kata Sandi Baru</label>
+                    <input type="password" id="newPassword" class="input-gradient w-full px-4 py-3 rounded-xl text-white text-sm" placeholder="Minimal 6 karakter" required>
                 </div>
-            `).join('');
-
-            // Render schedule list
-            ui.scheduleList.innerHTML = data.list.map(item => `
-                <div class="flex items-center p-5 bg-white/[0.02] rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-all cursor-default">
-                    <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 mr-4">
-                        <i class="fas fa-bookmark text-xs"></i>
-                    </div>
-                    <p class="font-bold text-slate-300">${item}</p>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1 uppercase tracking-wider">Konfirmasi Kata Sandi</label>
+                    <input type="password" id="confirmPassword" class="input-gradient w-full px-4 py-3 rounded-xl text-white text-sm" placeholder="Ulangi kata sandi" required>
                 </div>
-            `).join('');
+                <button type="submit" class="btn-glow w-full py-3 rounded-xl text-white font-semibold text-sm mt-2">
+                    Simpan Perubahan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data sementara (Simulasi Database)
+        let currentCredentials = {
+            username: "Admin",
+            password: "reyshan123"
+        };
+
+        // Inisialisasi input dengan data default
+        document.getElementById('usernameInput').value = currentCredentials.username;
+        document.getElementById('passwordInput').value = currentCredentials.password;
+
+        const loginForm = document.getElementById('loginForm');
+        const resetForm = document.getElementById('resetForm');
+        const statusMsg = document.getElementById('statusMsg');
+        const resetModal = document.getElementById('resetModal');
+
+        // Fungsi UI Modal
+        function openResetModal() {
+            resetModal.classList.remove('hidden');
         }
 
-        // Login handling
-        ui.loginForm.addEventListener('submit', async (e) => {
+        function closeResetModal() {
+            resetModal.classList.add('hidden');
+            resetForm.reset();
+        }
+
+        // Fungsi Tampilkan Pesan
+        function showStatus(text, type) {
+            statusMsg.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/50', 'text-red-400', 'bg-emerald-500/10', 'border-emerald-500/50', 'text-emerald-400', 'bg-sky-500/10', 'border-sky-500/50', 'text-sky-400');
+            statusMsg.innerText = text;
+            statusMsg.classList.remove('hidden');
+            
+            if(type === 'error') statusMsg.classList.add('bg-red-500/10', 'border-red-500/50', 'text-red-400');
+            else if(type === 'success') statusMsg.classList.add('bg-emerald-500/10', 'border-emerald-500/50', 'text-emerald-400');
+            else statusMsg.classList.add('bg-sky-500/10', 'border-sky-500/50', 'text-sky-400');
+
+            // Sembunyikan otomatis setelah 5 detik
+            setTimeout(() => statusMsg.classList.add('hidden'), 5000);
+        }
+
+        // Logika Ganti Password
+        resetForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const role = ui.roleInput.value;
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
 
-            ui.btnText.innerHTML = '<span class="spinner"></span> Memverifikasi...';
-            ui.loginBtn.disabled = true;
-
-            const target = DB[role];
-            
-            // Validation against mock DB
-            if (user === target.email && pass === target.pass) {
-                localStorage.setItem('userRole', role);
-                try {
-                    await signInAnonymously(auth);
-                } catch (err) {
-                    showError("Masalah koneksi terdeteksi.");
-                    resetBtn();
-                }
-            } else {
-                // Simulate delay for feel
-                setTimeout(() => {
-                    showError(`Akses ditolak. Email atau password ${role} salah.`);
-                    resetBtn();
-                }, 1000);
+            if (newPass.length < 6) {
+                alert("Kata sandi terlalu pendek! Gunakan minimal 6 karakter.");
+                return;
             }
+
+            if (newPass !== confirmPass) {
+                alert("Konfirmasi kata sandi tidak cocok!");
+                return;
+            }
+
+            // Update "Database" Lokal
+            currentCredentials.password = newPass;
+            document.getElementById('passwordInput').value = newPass; // Update field di form login
+            
+            closeResetModal();
+            showStatus("Kata sandi berhasil diperbarui!", "success");
         });
 
-        function resetBtn() {
-            ui.btnText.innerText = 'Autentikasi';
-            ui.loginBtn.disabled = false;
-        }
+        // Logika Login
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const inputUser = document.getElementById('usernameInput').value;
+            const inputPass = document.getElementById('passwordInput').value;
+            
+            const btn = loginForm.querySelector('button');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = `<span class="inline-block animate-spin mr-2">◌</span> Memproses...`;
+            btn.disabled = true;
 
-        function showError(msg) {
-            ui.message.innerText = msg;
-            ui.message.className = "mb-6 p-4 rounded-2xl text-xs text-center font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20";
-            ui.message.classList.remove('hidden-section');
-        }
-
-        // Logout handling
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth);
-            localStorage.removeItem('userRole');
+            setTimeout(() => {
+                // Cek terhadap "Database" Lokal
+                if (inputUser === currentCredentials.username && inputPass === currentCredentials.password) {
+                    showStatus(`Akses Diterima! Selamat datang, ${inputUser}.`, 'success');
+                } else {
+                    showStatus("Gagal: Username atau Kata Sandi salah.", "error");
+                }
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1000);
         });
     </script>
 </body>
