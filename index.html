@@ -1,809 +1,1068 @@
-<!DOCTYPE html>
-<html lang="id" class="dark">
+<!doctype html>
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduPulse - Platform Ujian & Artikel Edukasi Modern</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>EduPulse · Jurnal & Ujian Profesional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ["Plus Jakarta Sans", "Inter", "sans-serif"],
+                    },
                     colors: {
                         surface: {
-                            900: '#0f172a',
-                            800: '#1e293b',
-                            700: '#334155',
-                        }
-                    }
-                }
-            }
-        }
+                            900: "#0b0f19",
+                            800: "#151b2c",
+                            700: "#222b44",
+                        },
+                    },
+                },
+            },
+        };
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet" />
     <style>
-        .no-select {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+        .serif-title { font-family: "Playfair Display", Georgia, serif; }
+        * { transition: all 0.2s ease-in-out; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #222b44; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        
+        .exam-option-input:checked + .exam-option-label {
+            border-color: #22d3ee !important;
+            background: rgba(34, 211, 238, 0.1) !important;
+            box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.3);
+        }
+        .exam-option-label.correct-highlight {
+            border-color: #34d399 !important;
+            background: rgba(52, 211, 153, 0.15) !important;
+        }
+        .exam-option-label.wrong-highlight {
+            border-color: #f87171 !important;
+            background: rgba(248, 113, 113, 0.15) !important;
+        }
+        @keyframes pulse-warning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .timer-warning { animation: pulse-warning 0.8s ease-in-out infinite; }
+        body.exam-active { overflow: hidden; }
+        .modal-enter { transform: scale(0.95); opacity: 0; }
+        
+        .pw-toggle-btn {
             user-select: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            color: #64748b;
+            flex-shrink: 0;
         }
-        @keyframes toastIn {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .toast-animate { animation: toastIn 0.3s ease forwards; }
+        .pw-toggle-btn:hover { color: #94a3b8; background: rgba(100, 116, 139, 0.1); }
+        .input-group-wrapper { position: relative; display: flex; align-items: center; }
+        .input-group-wrapper input { padding-right: 44px; }
+        .input-group-wrapper .pw-toggle-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+
+        body.light-mode { background-color: #f8fafc !important; color: #0f172a !important; }
+        body.light-mode .text-slate-50, body.light-mode .text-slate-100, body.light-mode .text-slate-200, 
+        body.light-mode .text-slate-300, body.light-mode .text-slate-400, body.light-mode .text-white { color: #0f172a !important; }
+        body.light-mode .bg-surface-900, body.light-mode .bg-surface-800, body.light-mode .bg-surface-700 { background-color: #ffffff !important; }
+        body.light-mode .border-slate-800, body.light-mode .border-slate-700 { border-color: #cbd5e1 !important; }
+
+        body.reading-mode { overflow: hidden; }
+        body.reading-mode nav, body.reading-mode footer, body.reading-mode #burger-menu { display: none !important; }
+        body.reading-mode #modal-article-detail { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; border-radius: 0; z-index: 999; }
+        body.reading-mode #modal-content-article-detail { height: 100%; max-width: none; border-radius: 0; padding: 1.5rem; }
     </style>
 </head>
-<body class="bg-surface-900 text-slate-100 min-h-screen flex flex-col font-sans">
-
-    <!-- ========== TOAST NOTIFICATION CONTAINER ========== -->
-    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+<body class="bg-surface-900 text-slate-200 min-h-screen flex flex-col justify-between selection:bg-sky-500/30">
 
     <!-- ========== NAVBAR ========== -->
-    <nav class="border-b border-slate-800 bg-surface-900/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('artikel')">
-                <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-cyan-500/20">
-                    E
-                </div>
-                <span class="font-bold text-lg tracking-wide text-white">Edu<span class="text-cyan-400">Pulse</span></span>
+    <nav class="border-b border-slate-800/80 bg-surface-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <button id="burger-button" onclick="toggleBurgerMenu()" class="md:hidden text-slate-300 bg-surface-800/80 border border-slate-700/70 rounded-full p-2.5 hover:bg-slate-700/80 transition-all">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
+                <a href="#" class="flex items-center gap-2.5 group shrink-0">
+                    <span class="h-9 w-9 rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20 group-hover:scale-105">E</span>
+                    <span class="text-lg font-bold tracking-tight text-white hidden sm:inline">Edu<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Pulse.</span></span>
+                </a>
             </div>
 
-            <!-- Main Navigation Tabs -->
-            <div class="hidden md:flex items-center gap-1 bg-surface-800/80 p-1 rounded-full border border-slate-700/50">
-                <button id="nav-artikel" onclick="switchTab('artikel')" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 transition-all">
-                    📚 Artikel & Materi
-                </button>
-                <button id="nav-ujian" onclick="switchTab('ujian')" class="px-4 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all">
-                    📝 Bank Ujian
-                </button>
-                <button id="nav-riwayat" onclick="switchTab('riwayat')" class="px-4 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all">
-                    📊 Riwayat & Statistik
-                </button>
+            <div class="hidden md:flex items-center gap-2 bg-surface-800/70 border border-slate-700/60 rounded-full px-2 py-1.5">
+                <button id="nav-artikel" onclick="switchTab('artikel')" class="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all">Artikel</button>
+                <button id="nav-ujian" onclick="switchTab('ujian')" class="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all">Ujian</button>
+                <button id="nav-riwayat" onclick="switchTab('riwayat')" class="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all">Statistik</button>
             </div>
 
-            <!-- Auth Buttons / User Area -->
-            <div class="flex items-center gap-3">
+            <div id="auth-section" class="flex items-center gap-3 shrink-0 relative">
                 <div id="auth-buttons-logged-out" class="flex items-center gap-2">
-                    <button onclick="bukaModalLogin()" class="text-xs font-semibold text-slate-300 hover:text-white px-3 py-2">Masuk</button>
-                    <button onclick="bukaModalRegister()" class="text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-white px-4 py-2 rounded-xl transition-all shadow-md shadow-cyan-500/20">Daftar</button>
+                    <button onclick="bukaModalLogin()" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:border-cyan-400/60 px-3 py-1.5 rounded-full transition-all">🔑 Masuk</button>
+                    <button onclick="bukaModalRegister()" class="text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 px-3 py-1.5 rounded-full shadow-md transition-all hidden sm:block">📝 Daftar</button>
                 </div>
+                <div id="auth-buttons-logged-in" class="hidden items-center gap-1">
+                    <button onclick="toggleProfileDropdown()" class="text-xs font-medium text-slate-300 bg-surface-800 border border-slate-700/60 px-3 py-1.5 rounded-full flex items-center gap-2 hover:bg-slate-700 transition-all">
+                        <span class="h-5 w-5 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white text-[10px] font-bold">👤</span>
+                        <span id="username-display-text" class="hidden sm:inline">User</span>
+                        <span id="admin-badge" class="hidden text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1 py-0.5 rounded-full border border-amber-500/30">ADMIN</span>
+                        <span class="text-xs">▾</span>
+                    </button>
+                    <div id="profile-dropdown" class="hidden absolute top-full right-0 mt-2 w-48 bg-surface-800 border border-slate-700/60 rounded-2xl shadow-2xl p-2 z-40">
+                        <button onclick="openProfileModal(); toggleProfileDropdown();" class="w-full text-left text-xs font-medium text-slate-200 bg-surface-700 hover:bg-surface-600 px-3 py-2 rounded-lg transition-all mb-2">👤 Edit Profil</button>
+                        <button onclick="switchTab('riwayat'); toggleProfileDropdown();" class="w-full text-left text-xs font-medium text-slate-200 bg-surface-700 hover:bg-surface-600 px-3 py-2 rounded-lg transition-all mb-2">📊 Lihat Riwayat</button>
+                        <hr class="border-slate-700/50 my-2" />
+                        <button onclick="logout(); toggleProfileDropdown();" class="w-full text-left text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-3 py-2 rounded-lg transition-all">🚪 Keluar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <div id="auth-buttons-logged-in" class="hidden items-center gap-3">
-                    <span id="admin-badge" class="hidden text-[10px] font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md">ADMIN</span>
-                    <span id="username-display-text" class="text-xs font-semibold text-slate-200"></span>
-                    <button onclick="logout()" class="text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 rounded-xl transition-all">Keluar</button>
-                </div>
+        <div id="admin-buttons-row" class="hidden md:flex items-center gap-3 mt-3 border-t border-slate-700/50 pt-3">
+            <div id="admin-buttons" class="hidden items-center gap-2">
+                <button onclick="bukaModalTambah()" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-md transition-all">✍️ Buat Artikel</button>
+                <button onclick="bukaModalBuatUjian()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-md transition-all">📝 Buat Ujian</button>
             </div>
         </div>
     </nav>
 
-    <!-- ========== MAIN CONTENT WRAPPER ========== -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        <!-- SECTION: ARTIKEL & MATERI -->
-        <section id="section-artikel" class="space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-800/40 border border-slate-800 p-6 rounded-2xl">
-                <div>
-                    <h1 class="text-xl font-bold text-white">Modul Pembelajaran & Artikel</h1>
-                    <p class="text-xs text-slate-400 mt-1">Eksplorasi wawasan dasar hingga tingkat lanjut mengenai jaringan dan pemrograman.</p>
-                </div>
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <input type="text" id="search-artikel" oninput="renderArticles()" placeholder="Cari artikel..." class="bg-surface-900 border border-slate-700 text-xs text-white rounded-xl px-4 py-2.5 w-full sm:w-64 focus:outline-none focus:border-cyan-400" />
-                    <button id="btn-tambah-artikel" onclick="bukaModalTambahArtikel()" class="hidden bg-cyan-500 hover:bg-cyan-400 text-white font-semibold text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all">
-                        + Artikel
-                    </button>
-                </div>
+    <!-- BURGER MENU MOBILE -->
+    <div id="burger-menu" class="fixed top-0 right-0 z-50 hidden h-full w-72 bg-surface-900 border-l border-slate-800/80 shadow-2xl p-6 text-slate-200">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h4 class="text-sm font-semibold uppercase tracking-wider text-cyan-400">Menu Akun</h4>
+                <p class="text-xs text-slate-400 mt-1">Akses cepat opsi aplikasi</p>
             </div>
+            <button onclick="toggleBurgerMenu()" class="text-slate-400 hover:text-white">✕</button>
+        </div>
+        <div id="burger-guest-menu" class="space-y-3">
+            <button onclick="bukaModalLogin(); toggleBurgerMenu();" class="w-full text-left bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-sm font-semibold text-cyan-300">Masuk</button>
+            <button onclick="bukaModalRegister(); toggleBurgerMenu();" class="w-full text-left bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl px-4 py-3 text-sm font-semibold text-white">Daftar</button>
+        </div>
+        <div id="burger-user-menu" class="hidden space-y-3">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+                <p class="text-xs text-slate-400 uppercase tracking-wider">Hai, <span id="burger-username-text"></span></p>
+            </div>
+            <button onclick="openProfileModal(); toggleBurgerMenu();" class="w-full text-left bg-cyan-500/10 border border-cyan-500/20 rounded-2xl px-4 py-3 text-sm font-semibold text-cyan-300">Edit Profil</button>
+            <button onclick="logout(); toggleBurgerMenu();" class="w-full text-left bg-rose-500/10 border border-rose-500/20 rounded-2xl px-4 py-3 text-sm font-semibold text-rose-300">Keluar</button>
+        </div>
+        <div class="mt-6 p-4 rounded-2xl border border-slate-700/60 bg-slate-800/70 space-y-2">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tema & Tampilan</p>
+            <button onclick="setDarkMode(false); toggleBurgerMenu();" class="w-full text-left text-xs bg-slate-900 px-3 py-2 rounded-xl text-slate-300">Tema Terang</button>
+            <button onclick="setDarkMode(true); toggleBurgerMenu();" class="w-full text-left text-xs bg-slate-900 px-3 py-2 rounded-xl text-slate-300">Tema Gelap</button>
+        </div>
+    </div>
 
-            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <!-- ========== HEADER ========== -->
+    <header class="relative overflow-hidden border-b border-slate-800/50 bg-gradient-to-b from-blue-950/20 to-transparent py-12 px-6">
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <span class="text-xs font-bold tracking-widest text-cyan-400 uppercase bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">Ruang Baca Digital</span>
+            <h1 class="serif-title text-3xl md:text-5xl text-white font-semibold mt-4 mb-4 tracking-tight leading-tight">
+                Temukan materi, ujian interaktif, & lacak progres belajarmu.
+            </h1>
+            <p class="text-slate-400 text-sm md:text-base max-w-2xl mx-auto font-light leading-relaxed">
+                Platform jurnal mandiri terintegrasi. Riwayat ujian, statistik, dan filter cerdas tersedia.
+            </p>
+        </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="max-w-6xl mx-auto w-full px-6 py-8 pb-28 md:pb-8 flex-grow">
+        <!-- ARTIKEL -->
+        <section id="section-artikel">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-sm font-semibold tracking-wider uppercase text-slate-400">Semua Publikasi</h2>
+                    <span id="article-count" class="bg-slate-800 text-slate-300 text-xs px-2.5 py-0.5 rounded-full font-medium border border-slate-700/60">0</span>
+                </div>
+                <button onclick="fetchArticles()" class="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-medium">🔄 Segarkan</button>
+            </div>
+            <div class="mb-4"><input type="text" id="search-artikel" placeholder="🔍 Cari artikel..." oninput="renderArticles()" class="w-full max-w-md bg-surface-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400" /></div>
+            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         </section>
 
-        <!-- SECTION: BANK UJIAN -->
-        <section id="section-ujian" class="space-y-6 hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-800/40 border border-slate-800 p-6 rounded-2xl">
-                <div>
-                    <h1 class="text-xl font-bold text-white">Bank Ujian Evaluasi</h1>
-                    <p class="text-xs text-slate-400 mt-1">Uji kemampuan dan pemahaman teknis Anda secara real-time.</p>
-                </div>
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <input type="text" id="search-ujian" oninput="renderExams()" placeholder="Cari ujian..." class="bg-surface-900 border border-slate-700 text-xs text-white rounded-xl px-4 py-2.5 w-full sm:w-64 focus:outline-none focus:border-emerald-400" />
-                    <button id="btn-tambah-ujian" onclick="bukaModalBuatUjian()" class="hidden bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all">
-                        + Ujian
-                    </button>
-                </div>
+        <!-- UJIAN -->
+        <section id="section-ujian" class="hidden">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                <div class="flex items-center gap-3"><h2 class="text-sm font-semibold tracking-wider uppercase text-slate-400">Bank Ujian</h2><span id="exam-count" class="bg-slate-800 text-slate-300 text-xs px-2.5 py-0.5 rounded-full font-medium border border-slate-700/60">0</span></div>
+                <button onclick="fetchExams()" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 font-medium">🔄 Segarkan</button>
             </div>
-
-            <div id="exams-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div class="mb-4"><input type="text" id="search-ujian" placeholder="🔍 Cari ujian..." oninput="renderExams()" class="w-full max-w-md bg-surface-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400" /></div>
+            <div id="exams-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         </section>
 
-        <!-- SECTION: RIWAYAT & STATISTIK -->
-        <section id="section-riwayat" class="space-y-6 hidden">
-            <div id="stats-container" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-
-            <div class="bg-surface-800/40 border border-slate-800 p-6 rounded-2xl space-y-4">
-                <h3 class="text-base font-bold text-white">Catatan Performa Terakhir</h3>
-                <div id="history-list" class="space-y-3"></div>
+        <!-- RIWAYAT & STATISTIK -->
+        <section id="section-riwayat" class="hidden">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+                <h2 class="text-sm font-semibold tracking-wider uppercase text-slate-400">Riwayat & Statistik Ujian</h2>
+                <button onclick="loadResults(); renderHistory();" class="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 font-medium">🔄 Segarkan</button>
             </div>
+            <div id="stats-container" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+            <div class="mb-4"><input type="text" id="search-riwayat" placeholder="🔍 Filter riwayat..." oninput="renderHistory()" class="w-full max-w-md bg-surface-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400" /></div>
+            <div id="history-list" class="space-y-4"></div>
         </section>
-
     </main>
 
-    <!-- ========== MODAL KERJAKAN UJIAN (FULLSCREEN INTEGRITY) ========== -->
-    <div id="modal-kerjakan-ujian" class="fixed inset-0 bg-surface-900 z-[60] flex flex-col hidden no-select">
-        <!-- Anti-Cheating Warning Banner -->
-        <div id="anti-cheat-warning" class="hidden bg-rose-500/20 border-b border-rose-500/40 text-rose-300 px-4 py-2 text-center text-xs font-semibold animate-pulse">
-            ⚠️ Pelanggaran terdeteksi! Mengambil/berpindah tab saat ujian tidak diperbolehkan. Pelanggaran ke-<span id="violation-count">0</span>/3!
+    <!-- MOBILE BOTTOM NAV -->
+    <nav id="bottom-nav" class="fixed inset-x-0 bottom-0 z-50 md:hidden border-t border-slate-800 bg-surface-900/95 backdrop-blur-xl px-4 py-3">
+        <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+            <button id="bottom-nav-artikel" onclick="switchTab('artikel')" class="flex-1 flex flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-slate-300"><span class="text-lg">📄</span><span class="text-[10px] font-semibold">Artikel</span></button>
+            <button id="bottom-nav-ujian" onclick="switchTab('ujian')" class="flex-1 flex flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-slate-300"><span class="text-lg">📝</span><span class="text-[10px] font-semibold">Ujian</span></button>
+            <button id="bottom-nav-riwayat" onclick="switchTab('riwayat')" class="flex-1 flex flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-slate-300"><span class="text-lg">📊</span><span class="text-[10px] font-semibold">Statistik</span></button>
         </div>
+    </nav>
 
-        <!-- Exam Header -->
-        <div class="border-b border-slate-800 bg-surface-800/90 px-6 py-4 flex justify-between items-center shrink-0">
-            <div>
-                <h2 id="exam-modal-title" class="text-base font-bold text-white"></h2>
-                <p class="text-xs text-slate-400">Jawab pertanyaan dengan teliti sebelum menekan tombol Kumpulkan.</p>
-            </div>
-            <div id="exam-timer" class="font-mono text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                ⏱️ <span id="timer-text">00:00</span>
-            </div>
-        </div>
-
-        <!-- Exam Body -->
-        <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
-            <!-- Questions Display -->
-            <div class="flex-grow overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-6">
-                <div id="active-question-container"></div>
-            </div>
-
-            <!-- Quick Question Navigator Sidebar -->
-            <div class="w-full md:w-64 border-t md:border-t-0 md:border-l border-slate-800 bg-surface-800/40 p-4 shrink-0 flex flex-col justify-between">
-                <div>
-                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Navigasi Soal</h4>
-                    <div id="question-nav-grid" class="grid grid-cols-5 gap-2"></div>
-                </div>
-
-                <div class="mt-6 pt-4 border-t border-slate-700/50 space-y-2">
-                    <button onclick="toggleRaguRagu()" id="btn-ragu" class="w-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-semibold text-xs py-2 rounded-xl transition-all">
-                        🔖 Tandai Ragu-Ragu
-                    </button>
-                    <button onclick="kumpulkanUjian()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-xs py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all">
-                        Kumpulkan Ujian
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== MODAL REVIEW HASIL & PEMBAHASAN ========== -->
-    <div id="modal-hasil-ujian" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[70] flex items-center justify-center p-4 hidden">
-        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-2xl rounded-2xl shadow-2xl p-6 modal-enter max-h-[90vh] flex flex-col">
-            <div class="text-center shrink-0">
-                <div class="text-4xl mb-2" id="result-emoji">🎉</div>
-                <h3 class="text-xl font-bold text-white mb-1" id="result-title">Ujian Selesai!</h3>
-                <div class="bg-surface-900 border border-slate-700/50 rounded-xl p-4 my-4 grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Skor Akhir</p>
-                        <p id="result-score" class="text-3xl font-extrabold text-cyan-400 mt-1">0</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Jawaban Benar</p>
-                        <p id="result-correct" class="text-3xl font-extrabold text-emerald-400 mt-1">0/0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Discussion / Review Section -->
-            <div class="flex-grow overflow-y-auto space-y-4 my-2 border-t border-b border-slate-700/50 py-4 pr-2">
-                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Evaluasi & Pembahasan Soal</h4>
-                <div id="review-questions-list" class="space-y-4"></div>
-            </div>
-
-            <button onclick="tutupModalHasil()" class="w-full bg-surface-700 hover:bg-surface-600 text-white font-semibold text-xs py-3 rounded-xl transition-all shrink-0 mt-2">
-                Selesai & Ke Riwayat
-            </button>
-        </div>
-    </div>
-
-    <!-- ========== MODAL TAMBAH ARTIKEL (ADMIN) ========== -->
+    <!-- ========== MODAL TULIS/EDIT ARTIKEL ========== -->
     <div id="modal-tulis" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-lg rounded-2xl shadow-2xl p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base font-bold text-white">✏️ Tambah Artikel Baru</h3>
-                <button onclick="tutupModalTambahArtikel()" class="text-slate-400 hover:text-white">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Judul Artikel</label>
-                    <input type="text" id="input-title" placeholder="Contoh: Pengenalan VLAN" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-cyan-400" />
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Isi Artikel</label>
-                    <textarea id="input-content" rows="6" placeholder="Tuliskan isi artikel di sini..." class="w-full bg-surface-900 border border-slate-700 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-cyan-400"></textarea>
-                </div>
-                <button onclick="simpanArtikelBaru()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold text-xs py-3 rounded-xl transition-all">Terbitkan Artikel</button>
+        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-lg rounded-2xl shadow-2xl modal-enter" id="modal-content-tulis">
+            <div class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center bg-surface-900/40"><h3 class="text-md font-semibold text-white">Mulai Menulis Artikel</h3><button onclick="tutupModalTambah()" class="text-slate-400 hover:text-white text-lg">&times;</button></div>
+            <div class="p-6 space-y-4">
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Judul</label><input type="text" id="input-title" placeholder="Judul yang memikat..." class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" /></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Isi Artikel</label><textarea id="input-content" rows="6" placeholder="Tulis di sini..." class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 resize-none"></textarea></div>
+                <div class="flex justify-end gap-3"><button onclick="tutupModalTambah()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-700/40">Batal</button><button onclick="simpanArtikelBaru()" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-lg">Terbitkan</button></div>
             </div>
         </div>
     </div>
 
-    <!-- ========== MODAL BUAT UJIAN (ADMIN) ========== -->
-    <div id="modal-buat-ujian" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-2xl rounded-2xl shadow-2xl p-6 max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h3 class="text-base font-bold text-white">📝 Buat Bank Ujian Baru</h3>
-                <button onclick="tutupModalUjian()" class="text-slate-400 hover:text-white">&times;</button>
+    <!-- ========== MODAL BUAT/EDIT UJIAN ========== -->
+    <div id="modal-buat-ujian" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-2xl rounded-2xl shadow-2xl my-8 modal-enter" id="modal-content-buat-ujian">
+            <div class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center bg-surface-900/40 sticky top-0 z-10"><h3 id="modal-ujian-title" class="text-md font-semibold text-white">📝 Buat Ujian Baru</h3><button onclick="tutupModalUjian()" class="text-slate-400 hover:text-white text-lg">&times;</button></div>
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Judul Ujian</label><input type="text" id="exam-title-input" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-400" /></div>
+                    <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Durasi (menit)</label><input type="number" id="exam-duration-input" value="30" min="1" max="180" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-400" /></div>
+                </div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Deskripsi</label><textarea id="exam-desc-input" rows="2" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-400 resize-none"></textarea></div>
+                <div class="border-t border-slate-700/50 pt-4"><label class="block text-xs font-semibold text-slate-400 mb-3 uppercase">Daftar Soal</label><div id="questions-container" class="space-y-4"></div><button onclick="tambahSoalUI()" class="mt-4 w-full border-2 border-dashed border-slate-600 hover:border-emerald-400 text-slate-400 hover:text-emerald-400 text-xs font-semibold py-3 rounded-xl">➕ Tambah Soal</button></div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-700/50"><button onclick="tutupModalUjian()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-700/40">Batal</button><button onclick="simpanUjianOnline()" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-lg">Simpan Ujian</button></div>
             </div>
+        </div>
+    </div>
 
-            <div class="flex-grow overflow-y-auto space-y-4 pr-2">
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2">
-                        <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Judul Ujian</label>
-                        <input type="text" id="exam-title-input" placeholder="Ujian Dasar..." class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-400" />
+    <!-- ========== MODAL KERJAKAN UJIAN (FULLSCREEN) ========== -->
+    <div id="modal-kerjakan-ujian" class="fixed inset-0 bg-surface-900 z-[60] flex flex-col hidden">
+        <div class="border-b border-slate-800 bg-surface-800/90 backdrop-blur-md px-6 py-4 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-4"><button onclick="konfirmasiKeluarUjian()" class="text-slate-400 hover:text-rose-400 text-sm font-medium">✕ Keluar</button><span class="text-slate-500 text-sm">|</span><span id="exam-modal-title" class="text-white font-semibold text-sm truncate max-w-[200px] md:max-w-sm">Judul Ujian</span></div>
+            <div class="flex items-center gap-3"><span id="exam-progress-text" class="text-xs text-slate-400">0/0</span><div id="exam-timer" class="bg-surface-900 border border-slate-700 rounded-full px-4 py-1.5 text-sm font-mono font-bold text-cyan-400 flex items-center gap-1.5">⏱ <span id="timer-display">30:00</span></div></div>
+        </div>
+        <div class="h-1 bg-slate-800 shrink-0"><div id="exam-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style="width:0%"></div></div>
+        <div class="flex-1 overflow-y-auto px-6 py-8">
+            <div class="max-w-3xl mx-auto">
+                <div class="flex gap-2 mb-8 overflow-x-auto pb-2" id="question-indicators"></div>
+                <div id="question-area" class="bg-surface-800 border border-slate-800/80 rounded-2xl p-6 md:p-8">
+                    <span id="question-number-badge" class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 mb-4 inline-block">Soal 1</span>
+                    <h3 id="question-text" class="text-lg md:text-xl text-white font-medium mb-6 leading-relaxed"></h3>
+                    <div id="options-container" class="space-y-3"></div>
+                </div>
+                <div class="flex justify-between items-center mt-6">
+                    <button id="btn-prev" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 bg-slate-800/60 border border-slate-700 hover:bg-slate-700/60 disabled:opacity-30" onclick="navigasiSoal(-1)">← Sebelumnya</button>
+                    <span id="nav-info" class="text-xs text-slate-500">Soal 1 dari 10</span>
+                    <button id="btn-next" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400" onclick="navigasiSoal(1)">Selanjutnya →</button>
+                </div>
+                <div class="text-center mt-6"><button onclick="submitUjian()" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm px-8 py-3 rounded-full shadow-lg">✅ Kumpulkan Jawaban</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL HASIL UJIAN ========== -->
+    <div id="modal-hasil-ujian" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-2xl rounded-2xl shadow-2xl my-8 modal-enter" id="modal-content-hasil">
+            <div class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center bg-surface-900/40"><h3 class="text-md font-semibold text-white">📊 Hasil Ujian</h3><button onclick="tutupModalHasil()" class="text-slate-400 hover:text-white text-lg">&times;</button></div>
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto" id="hasil-content"></div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL DETAIL ARTIKEL ========== -->
+    <div id="modal-article-detail" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-2xl rounded-2xl shadow-2xl modal-enter" id="modal-content-article-detail">
+            <div class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center bg-surface-900/40">
+                <h3 class="text-md font-semibold text-white">📰 Detail Artikel</h3>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleReadingMode()" class="text-xs font-semibold text-cyan-400 border border-cyan-500/20 px-3 py-1.5 rounded-xl">Mode Baca</button>
+                    <button onclick="closeArticleDetail()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+                </div>
+            </div>
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div><h2 id="article-detail-title" class="text-2xl font-semibold text-white"></h2><p class="text-xs text-slate-400 mt-1" id="article-detail-meta"></p></div>
+                <div id="article-detail-content" class="prose prose-invert text-slate-200 text-sm leading-relaxed"></div>
+                
+                <!-- DISKUSI KOMENTAR ARTIKEL -->
+                <div id="article-detail-comments" data-article-id="" class="space-y-4 mt-6 pt-6 border-t border-slate-700/50">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-white">Diskusi Artikel</h4>
+                        <span id="article-comments-count" class="text-xs text-slate-400">0 Komentar</span>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Durasi (Menit)</label>
-                        <input type="number" id="exam-duration-input" value="15" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-400" />
+                    <div id="article-comments-list" class="space-y-3"></div>
+                    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 mt-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Tulis Komentar</p>
+                        <textarea id="article-comment-input" rows="3" placeholder="Tulis pendapat Anda..." class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 resize-none"></textarea>
+                        <div class="mt-3 flex justify-between items-center">
+                            <span class="text-xs text-slate-400">Sebagai: <strong id="article-comment-author">Anonim</strong></span>
+                            <div class="flex gap-2">
+                                <button id="article-comment-login-btn" type="button" onclick="promptLoginForArticle()" class="text-xs text-cyan-400 hover:underline">Masuk</button>
+                                <button type="button" onclick="submitArticleComment()" class="bg-cyan-500 text-white text-xs font-semibold px-4 py-2 rounded-xl">Kirim</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Deskripsi Singkat</label>
-                    <input type="text" id="exam-desc-input" placeholder="Deskripsi mengenai ujian ini..." class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-400" />
+    <!-- ========== MODAL AUTHENTICATION (LOGIN, REGISTER, PROFIL, LUPA PW) ========== -->
+    <div id="modal-login" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-md rounded-2xl shadow-2xl modal-enter" id="modal-content-login">
+            <div class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center bg-surface-900/40"><h3 class="text-md font-semibold text-white">🔑 Masuk ke EduPulse</h3><button onclick="tutupModalLogin()" class="text-slate-400 hover:text-white text-lg">&times;</button></div>
+            <div class="p-6 space-y-4">
+                <div id="login-pesan" class="hidden text-xs bg-amber-500/10 border border-amber-500/30 text-amber-400 px-4 py-3 rounded-xl"></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Username</label><input type="text" id="login-username" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" /></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Password</label>
+                    <div class="input-group-wrapper"><input type="password" id="login-password" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" /><button type="button" class="pw-toggle-btn" onclick="togglePassword('login-password', this)"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button></div>
                 </div>
-
-                <div class="border-t border-slate-700/50 pt-4 space-y-3">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-emerald-400 uppercase">Daftar Pertanyaan</h4>
-                        <button onclick="tambahSoalBlock()" class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-lg border border-emerald-500/30">+ Tambah Soal</button>
-                    </div>
-                    <div id="questions-container" class="space-y-4"></div>
+                <button onclick="login()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm py-3 rounded-xl shadow-lg">Masuk</button>
+                <div class="flex items-center justify-between text-xs text-slate-400 mt-2">
+                    <button onclick="tutupModalLogin(); bukaModalForgotPassword();" class="text-cyan-400 hover:underline">Lupa Password?</button>
+                    <span>Belum ada akun? <button onclick="tutupModalLogin(); bukaModalRegister();" class="text-emerald-400 hover:underline">Daftar</button></span>
                 </div>
             </div>
-
-            <button onclick="simpanUjianOnline()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs py-3 rounded-xl transition-all mt-4 shrink-0">Simpan & Terbitkan Ujian</button>
         </div>
     </div>
 
-    <!-- ========== MODAL LOGIN & REGISTER ========== -->
-    <div id="modal-login" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-sm rounded-2xl shadow-2xl p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base font-bold text-white">🔑 Masuk</h3>
-                <button onclick="tutupModalLogin()" class="text-slate-400 hover:text-white">&times;</button>
+    <div id="modal-register" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-md rounded-2xl shadow-2xl modal-enter" id="modal-content-register">
+            <div class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center bg-surface-900/40"><h3 class="text-md font-semibold text-white">📝 Daftar Akun</h3><button onclick="tutupModalRegister()" class="text-slate-400 hover:text-white text-lg">&times;</button></div>
+            <div class="p-6 space-y-4">
+                <div id="register-pesan" class="hidden text-xs bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-xl"></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Username</label><input type="text" id="register-username" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-400" /></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Email</label><input type="email" id="register-email" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-400" /></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Password</label>
+                    <div class="input-group-wrapper"><input type="password" id="register-password" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-400" /><button type="button" class="pw-toggle-btn" onclick="togglePassword('register-password', this)"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></button></div>
+                </div>
+                <button onclick="register()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm py-3 rounded-xl shadow-lg">Daftar Akun</button>
             </div>
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <input type="text" id="login-username" required placeholder="Username (ketik 'admin' untuk mode admin)" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400" />
-                <input type="password" id="login-password" required placeholder="Kata Sandi" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400" />
-                <button type="submit" class="w-full bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl transition-all">Masuk</button>
-            </form>
         </div>
     </div>
 
-    <div id="modal-register" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-sm rounded-2xl shadow-2xl p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base font-bold text-white">📝 Daftar Akun</h3>
-                <button onclick="tutupModalRegister()" class="text-slate-400 hover:text-white">&times;</button>
+    <div id="modal-profile" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4 hidden">
+        <div class="bg-surface-800 border border-slate-700/60 w-full max-w-md rounded-2xl shadow-2xl modal-enter" id="modal-content-profile">
+            <div class="px-6 py-4 border-b border-slate-700/50 flex justify-between items-center bg-surface-900/40"><h3 class="text-md font-semibold text-white">👤 Edit Profil</h3><button onclick="closeProfileModal()" class="text-slate-400 hover:text-white text-lg">&times;</button></div>
+            <div class="p-6 space-y-4">
+                <div id="profile-pesan" class="hidden text-xs bg-amber-500/10 border border-amber-500/30 text-amber-400 px-4 py-3 rounded-xl"></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Username</label><input type="text" id="profile-username" disabled class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-300" /></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Nama Lengkap</label><input type="text" id="profile-fullname" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" /></div>
+                <div><label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Email</label><input type="email" id="profile-email" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" /></div>
+                <div class="flex justify-end gap-3"><button onclick="closeProfileModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400">Batal</button><button onclick="saveProfileChanges()" class="bg-cyan-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl">Simpan</button></div>
             </div>
-            <form onsubmit="handleRegister(event)" class="space-y-4">
-                <input type="text" id="reg-username" required placeholder="Username Baru" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-400" />
-                <input type="password" id="reg-password" required placeholder="Kata Sandi" class="w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-400" />
-                <button type="submit" class="w-full bg-emerald-500 text-white font-semibold text-xs py-3 rounded-xl transition-all">Daftar</button>
-            </form>
         </div>
     </div>
 
-    <!-- ========== JAVASCRIPT APP STATE & LOGIC ========== -->
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 z-[90] bg-surface-800 border border-slate-700 rounded-xl px-5 py-3 shadow-2xl text-sm text-white font-medium opacity-0 translate-y-4 pointer-events-none transition-all duration-300"><span id="toast-message">Pesan</span></div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800/80 bg-surface-800/20 py-6 px-6 text-center text-xs text-slate-500"><p>&copy; 2026 EduPulse · Platform Jurnal & Ujian Profesional</p></footer>
+
     <script>
-        // Data State
-        let currentUser = JSON.parse(localStorage.getItem('edupulse_user')) || null;
-        let articlesData = JSON.parse(localStorage.getItem('edupulse_articles')) || [
-            { id: 1, title: "Panduan Dasar Manajemen Jaringan Modern", content: "Manajemen jaringan komputer merupakan proses penting dalam memastikan performa, keamanan, dan keandalan sistem komunikasi data. Dalam artikel ini, kita akan membahas dasar-dasar konfigurasi VLAN, pengalamatan IP, serta monitoring lalu lintas data.", author: "Admin", createdAt: "2026-01-15" },
-            { id: 2, title: "Mengenal Algoritma Penjadwalan OS", content: "Penjadwalan proses adalah salah satu fungsi dasar sistem operasi. CPU scheduler bertugas memilih proses dari antrean memori yang siap untuk dieksekusi. Algoritma populer meliputi FCFS, SJF, dan Round Robin.", author: "Admin", createdAt: "2026-02-01" }
-        ];
-        let examsData = JSON.parse(localStorage.getItem('edupulse_exams')) || [
-            {
-                id: 101,
-                title: "Ujian Dasar Jaringan Komputer",
-                description: "Uji pemahaman dasar mengenai model OSI, IP Addressing, dan Perangkat Jaringan.",
-                duration: 10,
-                questions: [
-                    { question: "Pada model OSI, lapisan manakah yang bertanggung jawab untuk pengalamatan IP?", options: ["Data Link Layer", "Network Layer", "Transport Layer", "Application Layer"], correctIndex: 1, explanation: "Network Layer (Lapisan 3) bertanggung jawab untuk pengalamatan logis (IP Address) dan routing data." },
-                    { question: "Perangkat jaringan yang berfungsi menghubungkan dua jaringan yang berbeda segmen adalah?", options: ["Switch", "Hub", "Router", "Access Point"], correctIndex: 2, explanation: "Router menghubungkan jaringan antar subnet atau segmen berlainan." }
-                ]
+        (function() {
+            const BASE_API_URL = "https://lms.agungbarliansaputra.workers.dev/api";
+            const JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.QMUFsIDTnFmyG3nMiGM6SDlOWk5GTlVSR0Yzd2g3U21xSnAtUXYzMA";
+            const STORAGE_RESULTS = "edupulse_exam_results";
+            const STORAGE_USERS = "edupulse_users";
+            const STORAGE_SESSION = "edupulse_session";
+
+            window.articlesData = [];
+            window.examsData = [];
+            window.resultsData = [];
+            window.currentUser = null;
+            window.pendingExamId = null;
+            window.pendingArticleId = null;
+            window.editingArticleId = null;
+
+            let activeExam = null;
+            let userAnswers = {};
+            let currentQuestionIndex = 0;
+            let examTimerInterval = null;
+            let examTimeRemaining = 0;
+            let examStartTime = null;
+            let editingExamId = null;
+            let soalSementara = [];
+
+            // --- AUTH & INIT USER ---
+            function initUsers() {
+                let users = getUsers();
+                if (!users.some(u => u.username === "admin")) {
+                    users.push({ id: "user-admin-default", username: "admin", password: "123456789", isAdmin: true, createdAt: Date.now() });
+                    saveUsers(users);
+                }
             }
-        ];
-        let historyData = JSON.parse(localStorage.getItem('edupulse_history')) || [];
+            function getUsers() { try { return JSON.parse(localStorage.getItem(STORAGE_USERS) || "[]"); } catch (e) { return []; } }
+            function saveUsers(u) { localStorage.setItem(STORAGE_USERS, JSON.stringify(u)); }
+            function getSession() { try { return JSON.parse(localStorage.getItem(STORAGE_SESSION) || "null"); } catch (e) { return null; } }
+            function saveSession(s) { if (s) localStorage.setItem(STORAGE_SESSION, JSON.stringify(s)); else localStorage.removeItem(STORAGE_SESSION); }
 
-        // Exam Mechanics State
-        let activeExam = null;
-        let activeQuestionIndex = 0;
-        let examAnswers = {};
-        let examRaguState = {};
-        let examTimerInterval = null;
-        let examSecondsLeft = 0;
-        let cheatingViolations = 0;
+            function loadSession() {
+                const s = getSession();
+                if (s && s.userId) {
+                    const u = getUsers().find(x => x.id === s.userId);
+                    if (u) { window.currentUser = { userId: u.id, username: u.username, isAdmin: u.isAdmin, loginTime: s.loginTime }; return true; }
+                }
+                window.currentUser = null;
+                return false;
+            }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            updateAuthUI();
-            renderArticles();
-            renderExams();
-            renderHistory();
-            setupAntiCheatingListeners();
-        });
+            function updateUIForAuth() {
+                const adminRow = document.getElementById("admin-buttons-row");
+                const adminBtns = document.getElementById("admin-buttons");
+                const loggedOut = document.getElementById("auth-buttons-logged-out");
+                const loggedIn = document.getElementById("auth-buttons-logged-in");
+                const nameText = document.getElementById("username-display-text");
+                const badge = document.getElementById("admin-badge");
 
-        function saveState() {
-            localStorage.setItem('edupulse_articles', JSON.stringify(articlesData));
-            localStorage.setItem('edupulse_exams', JSON.stringify(examsData));
-            localStorage.setItem('edupulse_history', JSON.stringify(historyData));
-            if (currentUser) localStorage.setItem('edupulse_user', JSON.stringify(currentUser));
-            else localStorage.removeItem('edupulse_user');
-        }
-
-        // Custom Toast Notification
-        function showToast(msg, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const colorClass = type === 'error' ? 'bg-rose-500' : type === 'success' ? 'bg-emerald-500' : 'bg-cyan-500';
-            
-            toast.className = `${colorClass} text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg toast-animate flex items-center justify-between gap-3 min-w-[200px] pointer-events-auto`;
-            toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="text-white opacity-80 hover:opacity-100">&times;</button>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
-
-        // Anti-Cheating System
-        function setupAntiCheatingListeners() {
-            document.addEventListener('visibilitychange', () => {
-                if (activeExam && document.hidden) {
-                    cheatingViolations++;
-                    const warnEl = document.getElementById('anti-cheat-warning');
-                    document.getElementById('violation-count').textContent = cheatingViolations;
-                    warnEl.classList.remove('hidden');
-
-                    showToast(`Peringatan Pelanggaran #${cheatingViolations}! Berpindah tab dilarang saat ujian.`, 'error');
-
-                    if (cheatingViolations >= 3) {
-                        showToast('Pelanggaran maksimal tercapai. Ujian dikumpulkan otomatis!', 'error');
-                        kumpulkanUjian();
+                if (window.currentUser) {
+                    loggedOut.classList.add("hidden");
+                    loggedIn.classList.remove("hidden");
+                    nameText.textContent = window.currentUser.username;
+                    if (window.currentUser.isAdmin) {
+                        adminRow.classList.remove("hidden"); adminBtns.classList.remove("hidden"); badge.classList.remove("hidden");
+                    } else {
+                        adminRow.classList.add("hidden"); adminBtns.classList.add("hidden"); badge.classList.add("hidden");
                     }
-                }
-            });
-
-            document.addEventListener('contextmenu', (e) => {
-                if (activeExam) {
-                    e.preventDefault();
-                    showToast('Klik kanan dinonaktifkan demi integritas ujian.', 'error');
-                }
-            });
-        }
-
-        function switchTab(tabName) {
-            ['artikel', 'ujian', 'riwayat'].forEach(t => {
-                document.getElementById(`section-${t}`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).className = "px-4 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all";
-            });
-
-            document.getElementById(`section-${tabName}`).classList.remove('hidden');
-            const activeColor = tabName === 'artikel' ? 'cyan' : tabName === 'ujian' ? 'emerald' : 'blue';
-            document.getElementById(`nav-${tabName}`).className = `px-4 py-1.5 rounded-full text-xs font-semibold bg-${activeColor}-500/10 text-${activeColor}-400 border border-${activeColor}-500/20 transition-all`;
-        }
-
-        function updateAuthUI() {
-            const loggedOut = document.getElementById('auth-buttons-logged-out');
-            const loggedIn = document.getElementById('auth-buttons-logged-in');
-            const adminBadge = document.getElementById('admin-badge');
-            const btnTambahArtikel = document.getElementById('btn-tambah-artikel');
-            const btnTambahUjian = document.getElementById('btn-tambah-ujian');
-
-            if (currentUser) {
-                loggedOut.classList.add('hidden');
-                loggedIn.classList.remove('hidden');
-                loggedIn.classList.add('flex');
-                document.getElementById('username-display-text').textContent = currentUser.username;
-
-                if (currentUser.isAdmin) {
-                    adminBadge.classList.remove('hidden');
-                    btnTambahArtikel.classList.remove('hidden');
-                    btnTambahUjian.classList.remove('hidden');
                 } else {
-                    adminBadge.classList.add('hidden');
-                    btnTambahArtikel.classList.add('hidden');
-                    btnTambahUjian.classList.add('hidden');
+                    loggedOut.classList.remove("hidden"); loggedIn.classList.add("hidden");
+                    adminRow.classList.add("hidden"); adminBtns.classList.add("hidden"); badge.classList.add("hidden");
                 }
-            } else {
-                loggedOut.classList.remove('hidden');
-                loggedIn.classList.add('hidden');
-                btnTambahArtikel.classList.add('hidden');
-                btnTambahUjian.classList.add('hidden');
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('login-username').value.trim();
-            currentUser = { username: u, isAdmin: u.toLowerCase() === 'admin' };
-            saveState();
-            updateAuthUI();
-            tutupModalLogin();
-            renderArticles();
-            renderExams();
-            showToast(`Selamat datang, ${u}!`);
-        }
-
-        function handleRegister(e) {
-            e.preventDefault();
-            const u = document.getElementById('reg-username').value.trim();
-            currentUser = { username: u, isAdmin: false };
-            saveState();
-            updateAuthUI();
-            tutupModalRegister();
-            showToast('Akun berhasil dibuat!');
-        }
-
-        function logout() {
-            currentUser = null;
-            saveState();
-            updateAuthUI();
-            renderArticles();
-            renderExams();
-            renderHistory();
-            showToast('Anda telah keluar.');
-        }
-
-        // Articles Management
-        function renderArticles() {
-            const grid = document.getElementById('articles-grid');
-            const search = document.getElementById('search-artikel').value.toLowerCase();
-            const filtered = articlesData.filter(a => a.title.toLowerCase().includes(search) || a.content.toLowerCase().includes(search));
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 bg-surface-800/40 rounded-2xl border border-slate-800"><p class="text-xs text-slate-400">Tidak ada artikel ditemukan.</p></div>`;
-                return;
             }
 
-            grid.innerHTML = filtered.map(a => `
-                <div class="bg-surface-800/60 border border-slate-700/60 rounded-2xl p-6 flex flex-col justify-between relative group">
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/20">Artikel</span>
-                            ${currentUser && currentUser.isAdmin ? `<button onclick="hapusArtikel(${a.id})" class="text-xs text-rose-400 hover:text-rose-300">🗑️ Hapus</button>` : ''}
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">${a.title}</h3>
-                        <p class="text-xs text-slate-400 line-clamp-3 leading-relaxed mb-4">${a.content}</p>
-                    </div>
-                    <div class="border-t border-slate-700/50 pt-4 flex items-center justify-between">
-                        <span class="text-[11px] text-slate-500">${a.author} • ${a.createdAt}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
+            function isAdmin() { return window.currentUser && window.currentUser.isAdmin === true; }
+            function isLoggedIn() { return window.currentUser !== null; }
 
-        function hapusArtikel(id) {
-            if (confirm('Hapus artikel ini?')) {
-                articlesData = articlesData.filter(a => a.id !== id);
-                saveState();
+            // --- LOCAL RESULTS / STATS ---
+            function getStoredResults() { try { return JSON.parse(localStorage.getItem(STORAGE_RESULTS) || "[]"); } catch(e) { return []; } }
+            function saveStoredResults(r) { localStorage.setItem(STORAGE_RESULTS, JSON.stringify(r)); }
+            
+            async function loadResults() {
+                window.resultsData = getStoredResults();
+            }
+
+            // --- MODALS & TABS MANAGEMENT ---
+            window.switchTab = function(tab) {
+                ["artikel", "ujian", "riwayat"].forEach(t => {
+                    document.getElementById(`section-${t}`)?.classList.add("hidden");
+                    document.getElementById(`nav-${t}`)?.classList.remove("bg-gradient-to-r", "from-cyan-500", "to-blue-600", "text-white");
+                    document.getElementById(`bottom-nav-${t}`)?.classList.remove("bg-slate-800", "text-white");
+                });
+                document.getElementById(`section-${tab}`)?.classList.remove("hidden");
+                document.getElementById(`nav-${tab}`)?.classList.add("bg-gradient-to-r", "from-cyan-500", "to-blue-600", "text-white");
+                document.getElementById(`bottom-nav-${tab}`)?.classList.add("bg-slate-800", "text-white");
+
+                if (tab === "artikel") renderArticles();
+                if (tab === "ujian") renderExams();
+                if (tab === "riwayat") renderHistory();
+            };
+
+            window.toast = function(msg) {
+                const el = document.getElementById("toast");
+                document.getElementById("toast-message").textContent = msg;
+                el.classList.remove("opacity-0", "translate-y-4", "pointer-events-none");
+                setTimeout(() => el.classList.add("opacity-0", "translate-y-4", "pointer-events-none"), 2500);
+            };
+
+            // --- ARTIKEL CRUD ---
+            async function fetchArticles() {
+                try {
+                    const res = await fetch(`${BASE_API_URL}/articles`, { headers: { Authorization: `Bearer ${JWT_TOKEN}` } });
+                    const json = await res.json();
+                    window.articlesData = (json.success && json.data) ? json.data : [];
+                } catch (e) { window.articlesData = []; }
                 renderArticles();
-                showToast('Artikel berhasil dihapus.', 'error');
             }
-        }
+            window.fetchArticles = fetchArticles;
 
-        function simpanArtikelBaru() {
-            const t = document.getElementById('input-title').value.trim();
-            const c = document.getElementById('input-content').value.trim();
-            if (!t || !c) return showToast('Lengkapi semua field!', 'error');
+            function renderArticles() {
+                const grid = document.getElementById("articles-grid");
+                const search = document.getElementById("search-artikel")?.value.toLowerCase() || "";
+                let data = window.articlesData.filter(a => (a.title || "").toLowerCase().includes(search) || (a.content || "").toLowerCase().includes(search));
+                document.getElementById("article-count").textContent = data.length;
 
-            articlesData.unshift({ id: Date.now(), title: t, content: c, author: currentUser.username, createdAt: new Date().toISOString().split('T')[0] });
-            saveState();
-            renderArticles();
-            tutupModalTambahArtikel();
-            showToast('Artikel berhasil diterbitkan!', 'success');
-        }
-
-        // Exams Management
-        function renderExams() {
-            const grid = document.getElementById('exams-grid');
-            const search = document.getElementById('search-ujian').value.toLowerCase();
-            const filtered = examsData.filter(e => e.title.toLowerCase().includes(search));
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 bg-surface-800/40 rounded-2xl border border-slate-800"><p class="text-xs text-slate-400">Tidak ada ujian ditemukan.</p></div>`;
-                return;
-            }
-
-            grid.innerHTML = filtered.map(e => `
-                <div class="bg-surface-800/60 border border-slate-700/60 rounded-2xl p-6 flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Ujian Online</span>
-                            ${currentUser && currentUser.isAdmin ? `<button onclick="hapusUjian(${e.id})" class="text-xs text-rose-400 hover:text-rose-300">🗑️ Hapus</button>` : ''}
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-2">${e.title}</h3>
-                        <p class="text-xs text-slate-400 line-clamp-2 mb-4">${e.description}</p>
-                    </div>
-                    <div class="border-t border-slate-700/50 pt-4 flex items-center justify-between">
-                        <span class="text-xs text-slate-500 font-mono">⏱️ ${e.duration} Mins</span>
-                        <button onclick="mulaiUjian(${e.id})" class="bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all">
-                            Mulai Ujian
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function hapusUjian(id) {
-            if (confirm('Hapus paket ujian ini?')) {
-                examsData = examsData.filter(e => e.id !== id);
-                saveState();
-                renderExams();
-                showToast('Ujian berhasil dihapus.', 'error');
-            }
-        }
-
-        // Core Exam Flow & Interactive Mechanics
-        function mulaiUjian(examId) {
-            if (!currentUser) {
-                showToast('Silakan login terlebih dahulu!', 'error');
-                return bukaModalLogin();
-            }
-
-            activeExam = examsData.find(e => e.id === examId);
-            if (!activeExam) return;
-
-            activeQuestionIndex = 0;
-            examAnswers = {};
-            examRaguState = {};
-            cheatingViolations = 0;
-            examSecondsLeft = activeExam.duration * 60;
-
-            document.getElementById('anti-cheat-warning').classList.add('hidden');
-            document.getElementById('exam-modal-title').textContent = activeExam.title;
-
-            renderActiveQuestion();
-            renderQuestionNav();
-
-            document.getElementById('modal-kerjakan-ujian').classList.remove('hidden');
-            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-
-            startExamTimer();
-        }
-
-        function renderActiveQuestion() {
-            const container = document.getElementById('active-question-container');
-            const q = activeExam.questions[activeQuestionIndex];
-
-            container.innerHTML = `
-                <div class="bg-surface-800/80 border border-slate-700/60 rounded-2xl p-6">
-                    <p class="text-xs text-cyan-400 font-semibold mb-2">Soal #${activeQuestionIndex + 1} dari ${activeExam.questions.length}</p>
-                    <p class="text-sm font-semibold text-white mb-6">${q.question}</p>
-                    <div class="space-y-3">
-                        ${q.options.map((opt, idx) => {
-                            const isSelected = examAnswers[activeQuestionIndex] === idx;
-                            return `
-                                <button onclick="pilihJawaban(${idx})" class="w-full text-left p-4 rounded-xl border ${isSelected ? 'border-cyan-400 bg-cyan-500/10' : 'border-slate-700/60 bg-surface-900/60'} hover:bg-slate-700/40 transition-all flex items-center gap-3">
-                                    <span class="h-6 w-6 rounded-lg border ${isSelected ? 'border-cyan-400 text-cyan-400' : 'border-slate-600 text-slate-400'} flex items-center justify-center text-xs font-bold shrink-0">
-                                        ${String.fromCharCode(65 + idx)}
-                                    </span>
-                                    <span class="text-xs text-slate-200">${opt}</span>
-                                </button>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-
-            const btnRagu = document.getElementById('btn-ragu');
-            if (examRaguState[activeQuestionIndex]) {
-                btnRagu.className = "w-full bg-amber-500 text-slate-900 font-semibold text-xs py-2 rounded-xl transition-all";
-            } else {
-                btnRagu.className = "w-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-semibold text-xs py-2 rounded-xl transition-all";
-            }
-        }
-
-        function renderQuestionNav() {
-            const grid = document.getElementById('question-nav-grid');
-            grid.innerHTML = activeExam.questions.map((_, idx) => {
-                const isCurrent = activeQuestionIndex === idx;
-                const isAnswered = examAnswers[idx] !== undefined;
-                const isRagu = examRaguState[idx];
-
-                let btnStyle = "bg-surface-900 border-slate-700 text-slate-400";
-                if (isCurrent) btnStyle = "border-2 border-cyan-400 text-cyan-400 font-bold";
-                else if (isRagu) btnStyle = "bg-amber-500 text-slate-900 font-bold";
-                else if (isAnswered) btnStyle = "bg-emerald-500/20 border-emerald-500/40 text-emerald-400";
-
-                return `
-                    <button onclick="pindahSoal(${idx})" class="h-10 w-full rounded-xl border text-xs font-semibold flex items-center justify-center transition-all ${btnStyle}">
-                        ${idx + 1}
-                    </button>
-                `;
-            }).join('');
-        }
-
-        function pilihJawaban(optIdx) {
-            examAnswers[activeQuestionIndex] = optIdx;
-            renderActiveQuestion();
-            renderQuestionNav();
-        }
-
-        function toggleRaguRagu() {
-            examRaguState[activeQuestionIndex] = !examRaguState[activeQuestionIndex];
-            renderActiveQuestion();
-            renderQuestionNav();
-        }
-
-        function pindahSoal(idx) {
-            activeQuestionIndex = idx;
-            renderActiveQuestion();
-            renderQuestionNav();
-        }
-
-        function startExamTimer() {
-            clearInterval(examTimerInterval);
-            examTimerInterval = setInterval(() => {
-                examSecondsLeft--;
-                const m = Math.floor(examSecondsLeft / 60);
-                const s = examSecondsLeft % 60;
-                document.getElementById('timer-text').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-
-                if (examSecondsLeft <= 0) {
-                    clearInterval(examTimerInterval);
-                    showToast('Waktu Ujian Habis!', 'error');
-                    kumpulkanUjian();
+                if (data.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">Belum ada artikel ditemukan.</div>`;
+                    return;
                 }
-            }, 1000);
-        }
-
-        function kumpulkanUjian() {
-            clearInterval(examTimerInterval);
-            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-
-            let correctCount = 0;
-            activeExam.questions.forEach((q, idx) => {
-                if (examAnswers[idx] === q.correctIndex) correctCount++;
-            });
-
-            const score = Math.round((correctCount / activeExam.questions.length) * 100);
-
-            historyData.unshift({
-                id: Date.now(),
-                username: currentUser.username,
-                examTitle: activeExam.title,
-                score: score,
-                correct: correctCount,
-                total: activeExam.questions.length,
-                date: new Date().toLocaleString('id-ID')
-            });
-            saveState();
-
-            // Render Review & Discussion
-            renderReviewQuestions();
-
-            document.getElementById('modal-kerjakan-ujian').classList.add('hidden');
-            document.getElementById('result-score').textContent = score;
-            document.getElementById('result-correct').textContent = `${correctCount}/${activeExam.questions.length}`;
-            document.getElementById('modal-hasil-ujian').classList.remove('hidden');
-        }
-
-        function renderReviewQuestions() {
-            const container = document.getElementById('review-questions-list');
-            container.innerHTML = activeExam.questions.map((q, idx) => {
-                const userAns = examAnswers[idx];
-                const isCorrect = userAns === q.correctIndex;
-
-                return `
-                    <div class="p-4 rounded-xl border ${isCorrect ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-rose-500/30 bg-rose-500/5'} text-xs space-y-2">
-                        <p class="font-bold text-white">${idx + 1}. ${q.question}</p>
-                        <p class="${isCorrect ? 'text-emerald-400' : 'text-rose-400'} font-semibold">
-                            Jawaban Anda: ${userAns !== undefined ? q.options[userAns] : 'Tidak dijawab'} ${isCorrect ? '✓' : '✗'}
-                        </p>
-                        ${!isCorrect ? `<p class="text-emerald-400 font-semibold">Kunci Jawaban: ${q.options[q.correctIndex]}</p>` : ''}
-                        <p class="text-slate-400 text-[11px] bg-surface-900/50 p-2.5 rounded-lg border border-slate-700/40">
-                            💡 <strong>Pembahasan:</strong> ${q.explanation || 'Tidak ada pembahasan khusus.'}
-                        </p>
+                grid.innerHTML = data.map(a => `
+                    <div class="bg-surface-800 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-md">Artikel</span>
+                            <h3 class="text-lg text-white font-semibold mt-2 mb-2 line-clamp-2">${escapeHtml(a.title)}</h3>
+                            <p class="text-xs text-slate-400 line-clamp-3 mb-4">${escapeHtml(a.content)}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-800/80">
+                            <button onclick="openArticleDetail('${a.id}')" class="text-xs text-cyan-400 font-semibold hover:underline">Baca Selengkapnya</button>
+                            ${isAdmin() ? `
+                                <div class="flex gap-2">
+                                    <button onclick="editArtikel('${a.id}')" class="text-xs text-amber-400">Edit</button>
+                                    <button onclick="hapusArtikel('${a.id}')" class="text-xs text-rose-400">Hapus</button>
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
-                `;
-            }).join('');
-        }
+                `).join('');
+            }
+            window.renderArticles = renderArticles;
 
-        function tutupModalHasil() {
-            document.getElementById('modal-hasil-ujian').classList.add('hidden');
-            switchTab('riwayat');
-            renderHistory();
-        }
+            window.bukaModalTambah = function() {
+                if (!isAdmin()) return toast("Akses terbatas khusus admin.");
+                if (!window.editingArticleId) {
+                    document.getElementById("input-title").value = "";
+                    document.getElementById("input-content").value = "";
+                }
+                document.getElementById("modal-tulis").classList.remove("hidden");
+            };
+            window.tutupModalTambah = function() {
+                window.editingArticleId = null;
+                document.getElementById("modal-tulis").classList.add("hidden");
+            };
 
-        function renderHistory() {
-            const container = document.getElementById('history-list');
-            const stats = document.getElementById('stats-container');
-            const userHistory = currentUser ? historyData.filter(h => h.username === currentUser.username) : [];
+            window.simpanArtikelBaru = async function() {
+                const title = document.getElementById("input-title").value.trim();
+                const content = document.getElementById("input-content").value.trim();
+                if (!title || !content) return toast("Lengkapi semua field.");
 
-            const total = userHistory.length;
-            const avg = total > 0 ? Math.round(userHistory.reduce((a, b) => a + b.score, 0) / total) : 0;
-            const top = total > 0 ? Math.max(...userHistory.map(h => h.score)) : 0;
+                const isEdit = window.editingArticleId !== null;
+                const method = isEdit ? "PUT" : "POST";
+                const url = isEdit ? `${BASE_API_URL}/articles/${window.editingArticleId}` : `${BASE_API_URL}/articles`;
 
-            stats.innerHTML = `
-                <div class="bg-surface-800/60 border border-slate-700/60 p-4 rounded-2xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Total Ujian</p><p class="text-2xl font-bold text-white mt-1">${total}</p></div>
-                <div class="bg-surface-800/60 border border-slate-700/60 p-4 rounded-2xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Rata-Rata Skor</p><p class="text-2xl font-bold text-cyan-400 mt-1">${avg}</p></div>
-                <div class="bg-surface-800/60 border border-slate-700/60 p-4 rounded-2xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Skor Tertinggi</p><p class="text-2xl font-bold text-emerald-400 mt-1">${top}</p></div>
-                <div class="bg-surface-800/60 border border-slate-700/60 p-4 rounded-2xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Status User</p><p class="text-xs font-bold text-amber-400 mt-2">${currentUser ? currentUser.username : 'Tamu'}</p></div>
-            `;
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: { Authorization: `Bearer ${JWT_TOKEN}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ title, content })
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        tutupModalTambah();
+                        fetchArticles();
+                        toast(isEdit ? "Artikel diperbarui!" : "Artikel terbit!");
+                    }
+                } catch(e) { toast("Gagal menyimpan artikel."); }
+            };
 
-            if (!currentUser || userHistory.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada riwayat pengerjaan ujian.</p>`;
-                return;
+            window.editArtikel = function(id) {
+                const art = window.articlesData.find(a => a.id === id);
+                if (!art) return;
+                window.editingArticleId = id;
+                document.getElementById("input-title").value = art.title;
+                document.getElementById("input-content").value = art.content;
+                bukaModalTambah();
+            };
+
+            window.hapusArtikel = async function(id) {
+                if (!confirm("Konfirmasi hapus artikel ini?")) return;
+                try {
+                    await fetch(`${BASE_API_URL}/articles/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${JWT_TOKEN}` } });
+                    fetchArticles();
+                    toast("Artikel berhasil dihapus.");
+                } catch(e) { toast("Gagal menghapus."); }
+            };
+
+            window.openArticleDetail = function(id) {
+                const art = window.articlesData.find(a => a.id === id);
+                if (!art) return;
+                document.getElementById("article-detail-title").textContent = art.title;
+                document.getElementById("article-detail-meta").textContent = `Dipublikasikan pada: ${new Date(art.created_at || Date.now()).toLocaleDateString('id-ID')}`;
+                document.getElementById("article-detail-content").textContent = art.content;
+                document.getElementById("article-detail-comments").dataset.articleId = art.id;
+                renderArticleComments(art.id);
+                document.getElementById("modal-article-detail").classList.remove("hidden");
+            };
+            window.closeArticleDetail = function() {
+                setReadingMode(false);
+                document.getElementById("modal-article-detail").classList.add("hidden");
+            };
+
+            // --- KOMENTAR ARTIKEL ---
+            function renderArticleComments(artId) {
+                const list = document.getElementById("article-comments-list");
+                const comments = JSON.parse(localStorage.getItem(`comments_${artId}`) || "[]");
+                document.getElementById("article-comments-count").textContent = `${comments.length} Komentar`;
+                if (comments.length === 0) {
+                    list.innerHTML = `<div class="text-xs text-slate-500">Belum ada komentar.</div>`;
+                    return;
+                }
+                list.innerHTML = comments.map(c => `
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-semibold text-white">${escapeHtml(c.username)}</span>
+                            <span class="text-[10px] text-slate-500">${new Date(c.time).toLocaleTimeString()}</span>
+                        </div>
+                        <p class="text-xs text-slate-300">${escapeHtml(c.text)}</p>
+                    </div>
+                `).join('');
             }
 
-            container.innerHTML = userHistory.map(h => `
-                <div class="bg-surface-800/60 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                        <h4 class="text-xs font-bold text-white">${h.examTitle}</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5">${h.date} • Benar ${h.correct}/${h.total}</p>
+            window.submitArticleComment = function() {
+                const artId = document.getElementById("article-detail-comments").dataset.articleId;
+                const input = document.getElementById("article-comment-input");
+                if (!input.value.trim()) return toast("Tulis komentar terlebih dahulu.");
+                
+                const comments = JSON.parse(localStorage.getItem(`comments_${artId}`) || "[]");
+                comments.unshift({ username: window.currentUser ? window.currentUser.username : "Anonim", text: input.value.trim(), time: Date.now() });
+                localStorage.setItem(`comments_${artId}`, JSON.stringify(comments));
+                input.value = "";
+                renderArticleComments(artId);
+                toast("Komentar terkirim.");
+            };
+
+            // --- BANK UJIAN (EXAM ENGINE) ---
+            async function fetchExams() {
+                try {
+                    const res = await fetch(`${BASE_API_URL}/exams`, { headers: { Authorization: `Bearer ${JWT_TOKEN}` } });
+                    const json = await res.json();
+                    window.examsData = (json.success && json.data) ? json.data : [];
+                } catch(e) { window.examsData = []; }
+                renderExams();
+            }
+            window.fetchExams = fetchExams;
+
+            function renderExams() {
+                const grid = document.getElementById("exams-grid");
+                const search = document.getElementById("search-ujian")?.value.toLowerCase() || "";
+                let data = window.examsData.filter(e => (e.title || "").toLowerCase().includes(search));
+                document.getElementById("exam-count").textContent = data.length;
+
+                if (data.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">Tidak ada ujian tersedia.</div>`;
+                    return;
+                }
+
+                grid.innerHTML = data.map(e => `
+                    <div class="bg-surface-800 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md">Durasi: ${e.duration || 30} mnt</span>
+                                <span class="text-xs text-slate-500">${(e.questions || []).length} Soal</span>
+                            </div>
+                            <h3 class="text-lg text-white font-semibold mb-2">${escapeHtml(e.title)}</h3>
+                            <p class="text-xs text-slate-400 line-clamp-2 mb-4">${escapeHtml(e.description || "Ujian Pengetahuan & Pemahaman.")}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-800/80">
+                            <button onclick="mulaiUjian('${e.id}')" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-semibold px-4 py-2 rounded-xl">Mulai Ujian</button>
+                            ${isAdmin() ? `
+                                <div class="flex gap-2">
+                                    <button onclick="editUjian('${e.id}')" class="text-xs text-amber-400">Edit</button>
+                                    <button onclick="hapusUjianOnline('${e.id}')" class="text-xs text-rose-400">Hapus</button>
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
-                    <span class="text-base font-bold ${h.score >= 70 ? 'text-emerald-400' : 'text-rose-400'}">${h.score} Pts</span>
-                </div>
-            `).join('');
-        }
+                `).join('');
+            }
+            window.renderExams = renderExams;
 
-        // Dynamic Quiz Admin Form
-        let newQuestionsState = [];
+            // --- BUAT / EDIT UJIAN (ADMIN) ---
+            window.bukaModalBuatUjian = function() {
+                if (!isAdmin()) return toast("Akses khusus admin.");
+                if (!editingExamId) {
+                    document.getElementById("exam-title-input").value = "";
+                    document.getElementById("exam-duration-input").value = 30;
+                    document.getElementById("exam-desc-input").value = "";
+                    soalSementara = [];
+                }
+                renderFormSoal();
+                document.getElementById("modal-buat-ujian").classList.remove("hidden");
+            };
 
-        function bukaModalBuatUjian() {
-            newQuestionsState = [];
-            document.getElementById('questions-container').innerHTML = '';
-            tambahSoalBlock();
-            document.getElementById('modal-buat-ujian').classList.remove('hidden');
-        }
+            window.tutupModalUjian = function() {
+                editingExamId = null;
+                soalSementara = [];
+                document.getElementById("modal-buat-ujian").classList.add("hidden");
+            };
 
-        function tambahSoalBlock() {
-            const idx = newQuestionsState.length;
-            newQuestionsState.push({ question: "", options: ["", "", "", ""], correctIndex: 0, explanation: "" });
+            window.tambahSoalUI = function() {
+                soalSementara.push({
+                    question: "",
+                    options: ["", "", "", ""],
+                    answer: 0
+                });
+                renderFormSoal();
+            };
 
-            const div = document.createElement('div');
-            div.className = "bg-surface-900 border border-slate-700 p-4 rounded-xl space-y-3";
-            div.id = `q_block_${idx}`;
-            div.innerHTML = `
-                <span class="text-xs font-bold text-emerald-400">Soal #${idx + 1}</span>
-                <input type="text" placeholder="Pertanyaan..." onchange="newQuestionsState[${idx}].question = this.value" class="w-full bg-surface-800 border border-slate-700 rounded-lg p-2 text-xs text-white" />
-                <div class="grid grid-cols-2 gap-2">
-                    ${[0, 1, 2, 3].map(o => `
-                        <input type="text" placeholder="Opsi ${String.fromCharCode(65 + o)}" onchange="newQuestionsState[${idx}].options[${o}] = this.value" class="w-full bg-surface-800 border border-slate-700 rounded-lg p-2 text-xs text-white" />
-                    `).join('')}
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <select onchange="newQuestionsState[${idx}].correctIndex = parseInt(this.value)" class="bg-surface-800 border border-slate-700 text-xs text-white rounded-lg p-2">
-                        <option value="0">Kunci: Opsi A</option>
-                        <option value="1">Kunci: Opsi B</option>
-                        <option value="2">Kunci: Opsi C</option>
-                        <option value="3">Kunci: Opsi D</option>
-                    </select>
-                    <input type="text" placeholder="Pembahasan Singkat..." onchange="newQuestionsState[${idx}].explanation = this.value" class="w-full bg-surface-800 border border-slate-700 rounded-lg p-2 text-xs text-white" />
-                </div>
-            `;
-            document.getElementById('questions-container').appendChild(div);
-        }
+            function renderFormSoal() {
+                const container = document.getElementById("questions-container");
+                if (soalSementara.length === 0) {
+                    container.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">Belum ada soal ditambahkan. Klik tombol di bawah.</div>`;
+                    return;
+                }
+                container.innerHTML = soalSementara.map((q, idx) => `
+                    <div class="bg-surface-900 border border-slate-700 p-4 rounded-xl space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-emerald-400">Soal #${idx + 1}</span>
+                            <button onclick="hapusSoalForm(${idx})" class="text-xs text-rose-400">Hapus Soal</button>
+                        </div>
+                        <input type="text" placeholder="Pertanyaan..." value="${escapeHtml(q.question)}" oninput="soalSementara[${idx}].question = this.value" class="w-full bg-surface-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+                        <div class="grid grid-cols-2 gap-2">
+                            ${q.options.map((opt, oIdx) => `
+                                <div class="flex items-center gap-1.5">
+                                    <input type="radio" name="correct_${idx}" ${q.answer === oIdx ? 'checked' : ''} onchange="soalSementara[${idx}].answer = ${oIdx}" />
+                                    <input type="text" placeholder="Opsi ${String.fromCharCode(65 + oIdx)}" value="${escapeHtml(opt)}" oninput="soalSementara[${idx}].options[${oIdx}] = this.value" class="w-full bg-surface-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white" />
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            }
 
-        function simpanUjianOnline() {
-            const t = document.getElementById('exam-title-input').value.trim();
-            const d = parseInt(document.getElementById('exam-duration-input').value);
-            const desc = document.getElementById('exam-desc-input').value.trim();
+            window.hapusSoalForm = function(i) {
+                soalSementara.splice(i, 1);
+                renderFormSoal();
+            };
 
-            if (!t || newQuestionsState.length === 0) return showToast('Lengkapi parameter ujian!', 'error');
+            window.simpanUjianOnline = async function() {
+                const title = document.getElementById("exam-title-input").value.trim();
+                const duration = parseInt(document.getElementById("exam-duration-input").value) || 30;
+                const description = document.getElementById("exam-desc-input").value.trim();
 
-            examsData.unshift({ id: Date.now(), title: t, description: desc, duration: d || 15, questions: newQuestionsState });
-            saveState();
-            renderExams();
-            tutupModalUjian();
-            showToast('Ujian baru berhasil ditambahkan!', 'success');
-        }
+                if (!title || soalSementara.length === 0) return toast("Lengkapi judul dan minimal 1 soal.");
 
-        // Modal Toggles
-        function bukaModalTambahArtikel() { document.getElementById('modal-tulis').classList.remove('hidden'); }
-        function tutupModalTambahArtikel() { document.getElementById('modal-tulis').classList.add('hidden'); }
-        function tutupModalUjian() { document.getElementById('modal-buat-ujian').classList.add('hidden'); }
-        function bukaModalLogin() { document.getElementById('modal-login').classList.remove('hidden'); }
-        function tutupModalLogin() { document.getElementById('modal-login').classList.add('hidden'); }
-        function bukaModalRegister() { document.getElementById('modal-register').classList.remove('hidden'); }
-        function tutupModalRegister() { document.getElementById('modal-register').classList.add('hidden'); }
+                const payload = { title, duration, description, questions: soalSementara };
+                const isEdit = editingExamId !== null;
+                const method = isEdit ? "PUT" : "POST";
+                const url = isEdit ? `${BASE_API_URL}/exams/${editingExamId}` : `${BASE_API_URL}/exams`;
+
+                try {
+                    const res = await fetch(url, {
+                        method,
+                        headers: { Authorization: `Bearer ${JWT_TOKEN}`, "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        tutupModalUjian();
+                        fetchExams();
+                        toast(isEdit ? "Ujian diperbarui!" : "Ujian berhasil dibuat!");
+                    }
+                } catch(e) { toast("Gagal menyimpan ujian."); }
+            };
+
+            window.editUjian = function(id) {
+                const ex = window.examsData.find(e => e.id === id);
+                if (!ex) return;
+                editingExamId = id;
+                document.getElementById("exam-title-input").value = ex.title;
+                document.getElementById("exam-duration-input").value = ex.duration || 30;
+                document.getElementById("exam-desc-input").value = ex.description || "";
+                soalSementara = JSON.parse(JSON.stringify(ex.questions || []));
+                bukaModalBuatUjian();
+            };
+
+            window.hapusUjianOnline = async function(id) {
+                if (!confirm("Hapus ujian ini?")) return;
+                try {
+                    await fetch(`${BASE_API_URL}/exams/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${JWT_TOKEN}` } });
+                    fetchExams();
+                    toast("Ujian dihapus.");
+                } catch(e) { toast("Gagal menghapus."); }
+            };
+
+            // --- EXECUTION OF EXAM (KERJAKAN UJIAN) ---
+            window.mulaiUjian = function(id) {
+                if (!isLoggedIn()) {
+                    window.pendingExamId = id;
+                    bukaModalLogin("Silakan masuk terlebih dahulu untuk memulai ujian.");
+                    return;
+                }
+                const exam = window.examsData.find(e => e.id === id);
+                if (!exam || !exam.questions || exam.questions.length === 0) return toast("Soal ujian belum siap.");
+
+                activeExam = exam;
+                userAnswers = {};
+                currentQuestionIndex = 0;
+                examTimeRemaining = (exam.duration || 30) * 60;
+                examStartTime = Date.now();
+
+                document.getElementById("exam-modal-title").textContent = exam.title;
+                document.getElementById("modal-kerjakan-ujian").classList.remove("hidden");
+                document.body.classList.add("exam-active");
+
+                startExamTimer();
+                renderQuestion();
+            };
+
+            function startExamTimer() {
+                clearInterval(examTimerInterval);
+                updateTimerDisplay();
+                examTimerInterval = setInterval(() => {
+                    examTimeRemaining--;
+                    updateTimerDisplay();
+                    if (examTimeRemaining <= 0) {
+                        clearInterval(examTimerInterval);
+                        toast("Waktu ujian habis!");
+                        submitUjian();
+                    }
+                }, 1000);
+            }
+
+            function updateTimerDisplay() {
+                const m = Math.floor(examTimeRemaining / 60);
+                const s = examTimeRemaining % 60;
+                document.getElementById("timer-display").textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+
+            function renderQuestion() {
+                const q = activeExam.questions[currentQuestionIndex];
+                const total = activeExam.questions.length;
+
+                document.getElementById("question-number-badge").textContent = `Soal ${currentQuestionIndex + 1} dari ${total}`;
+                document.getElementById("question-text").textContent = q.question;
+                document.getElementById("nav-info").textContent = `${currentQuestionIndex + 1} / ${total}`;
+
+                // Options
+                const optsContainer = document.getElementById("options-container");
+                optsContainer.innerHTML = q.options.map((opt, i) => `
+                    <label class="exam-option-label flex items-center gap-3 p-4 bg-surface-900 border border-slate-700/80 rounded-xl cursor-pointer hover:border-cyan-500/50">
+                        <input type="radio" name="exam_answer" value="${i}" ${userAnswers[currentQuestionIndex] === i ? 'checked' : ''} onchange="pilihJawaban(${i})" class="exam-option-input hidden" />
+                        <span class="h-6 w-6 rounded-full border border-slate-600 flex items-center justify-center text-xs font-bold text-slate-400 shrink-0">${String.fromCharCode(65 + i)}</span>
+                        <span class="text-sm text-slate-200">${escapeHtml(opt)}</span>
+                    </label>
+                `).join('');
+
+                // Progress Indicators
+                const indContainer = document.getElementById("question-indicators");
+                indContainer.innerHTML = activeExam.questions.map((_, i) => `
+                    <button onclick="jumpToQuestion(${i})" class="h-8 w-8 rounded-lg text-xs font-bold border shrink-0 ${i === currentQuestionIndex ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300' : userAnswers[i] !== undefined ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400' : 'border-slate-700 text-slate-500'}">${i + 1}</button>
+                `).join('');
+
+                document.getElementById("btn-prev").disabled = currentQuestionIndex === 0;
+                document.getElementById("btn-next").disabled = currentQuestionIndex === total - 1;
+                document.getElementById("exam-progress-bar").style.width = `${((Object.keys(userAnswers).length) / total) * 100}%`;
+                document.getElementById("exam-progress-text").textContent = `${Object.keys(userAnswers).length}/${total} Terjawab`;
+            }
+
+            window.pilihJawaban = function(idx) {
+                userAnswers[currentQuestionIndex] = idx;
+                renderQuestion();
+            };
+
+            window.navigasiSoal = function(dir) {
+                currentQuestionIndex += dir;
+                renderQuestion();
+            };
+
+            window.jumpToQuestion = function(idx) {
+                currentQuestionIndex = idx;
+                renderQuestion();
+            };
+
+            window.konfirmasiKeluarUjian = function() {
+                if (confirm("Yakin keluar? Progres pengerjaan ujian akan hilang.")) {
+                    tutupFullscreenUjian();
+                }
+            };
+
+            function tutupFullscreenUjian() {
+                clearInterval(examTimerInterval);
+                activeExam = null;
+                document.getElementById("modal-kerjakan-ujian").classList.add("hidden");
+                document.body.classList.remove("exam-active");
+            }
+
+            window.submitUjian = function() {
+                clearInterval(examTimerInterval);
+                
+                // Score calculation
+                let correctCount = 0;
+                activeExam.questions.forEach((q, i) => {
+                    if (userAnswers[i] === q.answer) correctCount++;
+                });
+
+                const totalQ = activeExam.questions.length;
+                const score = Math.round((correctCount / totalQ) * 100);
+                const isPassed = score >= 70;
+
+                const resultObj = {
+                    id: "res-" + Date.now(),
+                    examTitle: activeExam.title,
+                    username: window.currentUser.username,
+                    score,
+                    correctCount,
+                    totalQ,
+                    passed: isPassed,
+                    timestamp: Date.now()
+                };
+
+                const currentRes = getStoredResults();
+                currentRes.unshift(resultObj);
+                saveStoredResults(currentRes);
+
+                tutupFullscreenUjian();
+                tampilHasilUjian(resultObj);
+            };
+
+            function tampilHasilUjian(res) {
+                const container = document.getElementById("hasil-content");
+                container.innerHTML = `
+                    <div class="text-center space-y-3">
+                        <div class="inline-flex items-center justify-center h-20 w-20 rounded-full ${res.passed ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'} text-3xl font-bold">
+                            ${res.score}
+                        </div>
+                        <h4 class="text-xl font-bold text-white">${res.passed ? '🎉 Selamat, Anda Lulus!' : '📚 Tetap Semangat, Coba Lagi!'}</h4>
+                        <p class="text-xs text-slate-400">Menjawab benar ${res.correctCount} dari ${res.totalQ} soal (${res.examTitle})</p>
+                    </div>
+                    <div class="flex justify-center mt-4">
+                        <button onclick="tutupModalHasil(); switchTab('riwayat');" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-xs px-6 py-2.5 rounded-xl">Lihat Semua Statistik</button>
+                    </div>
+                `;
+                document.getElementById("modal-hasil-ujian").classList.remove("hidden");
+            }
+
+            window.tutupModalHasil = function() {
+                document.getElementById("modal-hasil-ujian").classList.add("hidden");
+            };
+
+            // --- RIWAYAT & STATISTIK ---
+            function renderHistory() {
+                loadResults();
+                const list = document.getElementById("history-list");
+                const stats = document.getElementById("stats-container");
+                const search = document.getElementById("search-riwayat")?.value.toLowerCase() || "";
+
+                let data = window.resultsData;
+                if (!isAdmin()) {
+                    data = data.filter(r => r.username === (window.currentUser ? window.currentUser.username : ""));
+                }
+                if (search) {
+                    data = data.filter(r => (r.examTitle || "").toLowerCase().includes(search) || (r.username || "").toLowerCase().includes(search));
+                }
+
+                // Render Summary Stats Cards
+                const totalExams = data.length;
+                const avgScore = totalExams > 0 ? Math.round(data.reduce((a, b) => a + (b.score || 0), 0) / totalExams) : 0;
+                const maxScore = totalExams > 0 ? Math.max(...data.map(r => r.score || 0)) : 0;
+                const passCount = data.filter(r => r.passed).length;
+
+                stats.innerHTML = `
+                    <div class="bg-surface-800 border border-slate-800 p-4 rounded-xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Total Ujian</p><p class="text-xl font-bold text-white mt-1">${totalExams}</p></div>
+                    <div class="bg-surface-800 border border-slate-800 p-4 rounded-xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Rata-Rata Nilai</p><p class="text-xl font-bold text-cyan-400 mt-1">${avgScore}</p></div>
+                    <div class="bg-surface-800 border border-slate-800 p-4 rounded-xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Nilai Tertinggi</p><p class="text-xl font-bold text-emerald-400 mt-1">${maxScore}</p></div>
+                    <div class="bg-surface-800 border border-slate-800 p-4 rounded-xl text-center"><p class="text-[10px] text-slate-400 uppercase font-semibold">Lulus / Gagal</p><p class="text-xl font-bold text-indigo-400 mt-1">${passCount} / ${totalExams - passCount}</p></div>
+                `;
+
+                if (data.length === 0) {
+                    list.innerHTML = `<div class="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">Belum ada riwayat pengerjaan.</div>`;
+                    return;
+                }
+
+                list.innerHTML = data.map(r => `
+                    <div class="bg-surface-800 border border-slate-800/80 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-white">${escapeHtml(r.examTitle)}</span>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${r.passed ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${r.passed ? 'LULUS' : 'GAGAL'}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Siswa: <strong>${escapeHtml(r.username)}</strong> • Benar ${r.correctCount}/${r.totalQ} • ${new Date(r.timestamp).toLocaleDateString('id-ID')}</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-lg font-bold ${r.score >= 70 ? 'text-emerald-400' : 'text-rose-400'}">${r.score}</span>
+                            ${isAdmin() ? `<button onclick="deleteResult('${r.id}')" class="text-xs text-rose-400 hover:underline">Hapus</button>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            window.deleteResult = function(id) {
+                if (!isAdmin()) return toast("Hanya admin yang dapat menghapus.");
+                if (!confirm("Hapus catatan statistik ini?")) return;
+                const updated = getStoredResults().filter(r => r.id !== id);
+                saveStoredResults(updated);
+                renderHistory();
+                toast("Catatan riwayat berhasil dihapus.");
+            };
+
+            // --- AUTHENTICATION ACTIONS ---
+            window.login = function() {
+                const uInput = document.getElementById("login-username").value.trim();
+                const pInput = document.getElementById("login-password").value;
+                const user = getUsers().find(u => u.username === uInput && u.password === pInput);
+
+                if (!user) return document.getElementById("login-pesan").classList.remove("hidden"), document.getElementById("login-pesan").textContent = "Username / password salah.";
+
+                window.currentUser = { userId: user.id, username: user.username, isAdmin: user.isAdmin, loginTime: Date.now() };
+                saveSession(window.currentUser);
+                updateUIForAuth();
+                tutupModalLogin();
+                toast("Selamat datang, " + user.username + "!");
+
+                if (window.pendingExamId) { const exId = window.pendingExamId; window.pendingExamId = null; mulaiUjian(exId); }
+            };
+
+            window.register = function() {
+                const u = document.getElementById("register-username").value.trim();
+                const e = document.getElementById("register-email").value.trim();
+                const p = document.getElementById("register-password").value;
+
+                if (!u || !e || !p) return document.getElementById("register-pesan").classList.remove("hidden"), document.getElementById("register-pesan").textContent = "Lengkapi form pendaftaran.";
+
+                const users = getUsers();
+                if (users.some(x => x.username === u)) return toast("Username sudah terpakai.");
+
+                const newUser = { id: "user-" + Date.now(), username: u, email: e, password: p, isAdmin: false, createdAt: Date.now() };
+                users.push(newUser);
+                saveUsers(users);
+
+                window.currentUser = { userId: newUser.id, username: newUser.username, isAdmin: false, loginTime: Date.now() };
+                saveSession(window.currentUser);
+                updateUIForAuth();
+                tutupModalRegister();
+                toast("Registrasi berhasil!");
+            };
+
+            window.logout = function() {
+                window.currentUser = null;
+                saveSession(null);
+                updateUIForAuth();
+                toast("Anda telah keluar.");
+            };
+
+            // --- HELPER SYSTEM ---
+            function escapeHtml(str) {
+                return String(str || "").replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+            }
+
+            window.toggleBurgerMenu = function() { document.getElementById("burger-menu").classList.toggle("hidden"); };
+            window.toggleProfileDropdown = function() { document.getElementById("profile-dropdown").classList.toggle("hidden"); };
+            window.togglePassword = function(id) { const el = document.getElementById(id); el.type = el.type === "password" ? "text" : "password"; };
+            window.setDarkMode = function(dark) { document.body.classList.toggle("light-mode", !dark); };
+            window.setReadingMode = function(read) { document.body.classList.toggle("reading-mode", read); };
+            window.toggleReadingMode = function() { setReadingMode(!document.body.classList.contains("reading-mode")); };
+
+            window.bukaModalLogin = function(msg) {
+                if (msg) document.getElementById("login-pesan").classList.remove("hidden"), document.getElementById("login-pesan").textContent = msg;
+                document.getElementById("modal-login").classList.remove("hidden");
+            };
+            window.tutupModalLogin = function() { document.getElementById("modal-login").classList.add("hidden"); };
+            window.bukaModalRegister = function() { document.getElementById("modal-register").classList.remove("hidden"); };
+            window.tutupModalRegister = function() { document.getElementById("modal-register").classList.add("hidden"); };
+            window.openProfileModal = function() { document.getElementById("modal-profile").classList.remove("hidden"); };
+            window.closeProfileModal = function() { document.getElementById("modal-profile").classList.add("hidden"); };
+
+            // --- INITIALIZATION ---
+            initUsers();
+            loadSession();
+            updateUIForAuth();
+            fetchArticles();
+            fetchExams();
+            loadResults();
+        })();
     </script>
 </body>
 </html>
