@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Daftar Dosen Baru</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen py-10">
+  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
+    <h2 class="text-xl font-bold text-slate-800 text-center mb-6">Pengisian Data Diri Dosen Baru</h2>
+    <form class="space-y-4" onsubmit="alert('Akun Dosen Berhasil Dibuat!'); window.location.href='login.html'; return false;">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700">Nama Lengkap & Gelar</label>
+          <input type="text" required class="w-full mt-1 p-2.5 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700">NIDN</label>
+          <input type="text" required class="w-full mt-1 p-2.5 border rounded-lg">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Program Studi / Pengampu</label>
+        <input type="text" required class="w-full mt-1 p-2.5 border rounded-lg" placeholder="Contoh: Teknik Informatika">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Username</label>
+        <input type="text" required class="w-full mt-1 p-2.5 border rounded-lg">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Password</label>
+        <input type="password" required class="w-full mt-1 p-2.5 border rounded-lg">
+      </div>
+      <button type="submit" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold hover:bg-indigo-700">Buat Akun Dosen</button>
+      <div class="text-center mt-2">
+        <a href="login.html" class="text-xs text-slate-500 hover:underline">Kembali ke halaman Login</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
